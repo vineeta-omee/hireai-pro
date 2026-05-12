@@ -8,7 +8,14 @@
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,sans-serif;background:#f5f6fa;color:#1a1a2e;min-height:100vh}
+body{
+  font-family:system-ui,sans-serif;
+  background: radial-gradient(circle at 20% 30%, #1e3a8a, transparent),
+              radial-gradient(circle at 80% 70%, #9333ea, transparent),
+              #0f172a;
+  color:#e2e8f0;
+  min-height:100vh
+}
 .topbar{background:#fff;border-bottom:1.5px solid #e8e8f0;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100}
 .logo{font-size:20px;font-weight:800;color:#1a1a2e}.logo span{color:#6366f1}
 .live-badge{background:#d4f7ee;color:#0a7a55;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:5px}
@@ -20,7 +27,20 @@ body{font-family:system-ui,sans-serif;background:#f5f6fa;color:#1a1a2e;min-heigh
 .nb:hover{color:#6366f1}
 .page{display:none;padding:20px;max-width:960px;margin:0 auto}
 .page.active{display:block}
-.card{background:#fff;border-radius:14px;border:1.5px solid #e8e8f0;padding:20px;margin-bottom:16px;box-shadow:0 2px 6px rgba(0,0,0,.04)}
+.card{
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(16px);
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,0.1);
+  padding:20px;
+  margin-bottom:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.4);
+  transition:all .3s ease
+}
+
+.card:hover{
+  transform:translateY(-8px) scale(1.02)
+}
 .card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;margin-bottom:16px}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px}
 .stat{background:#f8f9fe;border-radius:12px;padding:16px;text-align:center;border:1.5px solid #e8e8f0}
@@ -97,9 +117,19 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
 .ticker{background:#fff;border:1.5px solid #e8e8f0;border-radius:10px;padding:10px 16px;font-size:12px;color:#666;display:flex;align-items:center;gap:8px;margin-bottom:16px}
 .ticker-dot{width:7px;height:7px;border-radius:50%;background:#10b981;flex-shrink:0;animation:blink 1.5s infinite}
 .tip{background:#eef2ff;border-left:3px solid #6366f1;border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#4338ca;margin:10px 0;line-height:1.6}
+
+#particles-js{
+  position:fixed;
+  width:100%;
+  height:100%;
+  z-index:-1;
+  pointer-events:none
+}
+
 </style>
 </head>
 <body>
+<div id="particles-js"></div>
 <div class="topbar">
   <div class="logo">HireAI <span>Pro</span> ⚡</div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -122,6 +152,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
 <div id="toast" class="toast"></div>
 <div class="page active" id="page-dash">
   <div class="ticker"><div class="ticker-dot"></div><span id="tickerText">Live: HireAI Pro fully operational 🚀</span></div>
+  <div id="3d-box" style="width:100%;height:300px;pointer-events:none"></div>
   <div class="stats-grid">
     <div class="stat"><div class="stat-n" style="color:#6366f1" id="totalApplied">0</div><div class="stat-l">Applied</div></div>
     <div class="stat"><div class="stat-n" style="color:#8b5cf6" id="totalScreened">0</div><div class="stat-l">Screened</div></div>
@@ -282,6 +313,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <div class="settings-row"><div><div style="font-weight:700">Groq AI</div><div style="font-size:12px;color:#888">llama-3.3-70b · Free forever</div></div><span class="badge bg">✅ Connected</span></div>
   </div>
 </div>
+
 <script>
 const GROQ_KEY='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';
 const EMAILJS_SERVICE='service_2jhvzq6';
@@ -289,9 +321,15 @@ const EMAILJS_TEMPLATE='template_bjvf9yd';
 const EMAILJS_PUBLIC='6GhtJK8vvpWaWwY9J';
 const SUPABASE_URL='https://neicnwazsszmdsyyqlnw.supabase.co';
 const SUPABASE_KEY='sb_publishable_4iZSiIDROottJdaSLAwIKQ_cxsCno-R';
-window.onload=function(){emailjs.init(EMAILJS_PUBLIC);};
+
+// EmailJS init - FIXED
+window.onload = function() {
+  emailjs.init(EMAILJS_PUBLIC);
+};
+
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let resumeText='',uploadedFile=null,allCandidates=[],emailsSent=0;
+
 function nav(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');if(btn)btn.classList.add('active');if(id==='pipe')loadPipeline('AI / ML Engineer');if(id==='dash')loadDashboard();}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 function addActivity(text,color='#6366f1'){const feed=document.getElementById('activityFeed');const div=document.createElement('div');div.className='tl-item';div.innerHTML=`<div class="tl-dot" style="background:${color}"></div><div><div style="font-weight:700;font-size:13px">${text}</div><div style="font-size:11px;color:#888">just now</div></div>`;feed.insertBefore(div,feed.firstChild);}
@@ -299,7 +337,9 @@ function fileSelected(input){const f=input.files[0];if(!f)return;uploadedFile=f;
 function clearFile(){uploadedFile=null;resumeText='';document.getElementById('fileBar').style.display='none';document.getElementById('dropIcon').textContent='📄';document.getElementById('dropTitle').textContent='Drop resume or click to upload';document.getElementById('dropZone').classList.remove('has-file');document.getElementById('rFile').value='';checkReady();}
 function checkReady(){document.getElementById('analyzeBtn').disabled=!(uploadedFile&&document.getElementById('rJob').value);}
 function resetScreen(){clearFile();document.getElementById('resultsWrap').style.display='none';document.getElementById('rJob').value='';document.getElementById('rEmail').value='';document.getElementById('rName').value='';checkReady();}
+
 const scanMsgs=['Parsing document...','Extracting skills...','Matching keywords...','Running ATS check...','Generating recommendations...','Determining action...'];
+
 async function analyzeResume(){
   const job=document.getElementById('rJob').value;
   const email=document.getElementById('rEmail').value;
@@ -319,23 +359,39 @@ async function analyzeResume(){
     clearInterval(iv);
     document.getElementById('scanWrap').style.display='none';
     await renderResults(r,job,email,name);
-  }catch(e){clearInterval(iv);document.getElementById('scanWrap').style.display='none';document.getElementById('analyzeBtn').disabled=false;showToast('❌ AI Failed — try again');console.error(e);}
+  }catch(e){
+    clearInterval(iv);
+    document.getElementById('scanWrap').style.display='none';
+    document.getElementById('analyzeBtn').disabled=false;
+    showToast('❌ AI Failed — try again');
+    console.error(e);
+  }
 }
-async function sendEmailJS(to_email,name,subject,message){
+
+async function sendEmailJS(to_email, name, subject, message) {
+  // Re-init every time to be safe
   emailjs.init(EMAILJS_PUBLIC);
-  return emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,{to_email,name,subject,message});
+  return emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
+    to_email: to_email,
+    name: name,
+    subject: subject,
+    message: message
+  });
 }
+
 async function renderResults(r,job,email,name){
   const score=Math.max(0,Math.min(100,r.score));
   document.getElementById('scoreNum').textContent=score;
   document.getElementById('scoreTitle').textContent=r.scoreTitle||'Done';
   document.getElementById('scoreVerdict').textContent=r.scoreVerdict||'';
   setTimeout(()=>{const offset=251-(251*score/100);const ring=document.getElementById('ringEl');ring.style.strokeDashoffset=offset;ring.style.stroke=score>=80?'#10b981':score>=60?'#f59e0b':'#ef4444';},100);
+
   let action,actionLabel,emailMsg,bc;
   if(score>=90){action='hired';actionLabel='🏆 AUTO-HIRED';bc='bg';emailMsg=`Congratulations! 🎉 We are thrilled to offer you the position of ${job}. Please confirm by next Friday.`;}
-  else if(score>=80){action='interview';actionLabel='📅 INTERVIEW INVITED';bc='bp';emailMsg=`Great news! You have been shortlisted for ${job}. Google Meet interview link coming shortly. Duration: 45 minutes.`;}
+  else if(score>=80){action='interview';actionLabel='📅 INTERVIEW INVITED';bc='bp';emailMsg=`Great news! You have been shortlisted for ${job}. Google Meet interview link will be sent shortly. Duration: 45 minutes.`;}
   else if(score>=60){action='shortlisted';actionLabel='📋 SHORTLISTED';bc='ba';emailMsg=`Thank you for applying for ${job}. You are on our shortlist. We will be in touch soon!`;}
-  else{action='rejected';actionLabel='❌ AUTO-REJECTED';bc='br';emailMsg=`Thank you for your interest in ${job}. After careful review, we are moving forward with other candidates. Best of luck!`;}
+  else{action='rejected';actionLabel='❌ AUTO-REJECTED';bc='br';emailMsg=`Thank you for your interest in ${job}. After careful review, we are moving forward with other candidates. Best of luck in your job search!`;}
+
   document.getElementById('autoActionBadge').innerHTML=`<span class="badge ${bc}" style="font-size:13px;padding:6px 14px">${actionLabel}</span>`;
   const mg=document.getElementById('metricsGrid');mg.innerHTML='';
   const colors=['#6366f1','#10b981','#f59e0b','#ef4444'];
@@ -346,36 +402,188 @@ async function renderResults(r,job,email,name){
   const rl=document.getElementById('recList');rl.innerHTML='';(r.recommendations||[]).forEach(rc=>rl.innerHTML+=`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px"><span style="color:#6366f1">→</span><span>${rc}</span></div>`);
   document.getElementById('resultsWrap').style.display='block';
   document.getElementById('analyzeBtn').disabled=false;
-  try{await sb.from('candidates').insert({name,email,job_title:job,score,status:action});allCandidates.push({name,email,job_title:job,score,status:action});updateDashboardStats();addActivity(`${name} scored ${score}/100 → ${actionLabel}`,score>=80?'#10b981':score>=60?'#f59e0b':'#ef4444');showToast('✅ Saved!');}catch(e){console.log('DB:',e);}
-  if(email&&email.trim()!==''){
-    const subject=score>=90?'🎉 Congratulations — Job Offer!':score>=80?'📅 Interview Invitation':score>=60?'✅ Application Update':'Your Application Status';
+
+  // Save to Supabase
+  try{
+    await sb.from('candidates').insert({name,email,job_title:job,score,status:action});
+    allCandidates.push({name,email,job_title:job,score,status:action});
+    updateDashboardStats();
+    addActivity(`${name} scored ${score}/100 → ${actionLabel}`,score>=80?'#10b981':score>=60?'#f59e0b':'#ef4444');
+    showToast('✅ Saved to database!');
+  }catch(e){console.log('DB error:',e);}
+
+  // Send Email
+  if(email && email.trim() !== ''){
+    const subject=score>=90?'🎉 Congratulations — Job Offer!':score>=80?'📅 Interview Invitation':score>=60?'✅ Application Update':'Your Application Status — HireAI Pro';
     try{
-      await sendEmailJS(email,name,subject,emailMsg);
+      await sendEmailJS(email, name, subject, emailMsg);
       emailsSent++;
       document.getElementById('totalEmails').textContent=emailsSent;
       document.getElementById('emailSentCard').style.display='block';
-      document.getElementById('emailPreview').innerHTML=`<div class="email-meta"><strong>To:</strong> ${email} | <strong>Subject:</strong> ${subject} | <strong>Status:</strong> ✅ Sent!</div><strong>Dear ${name},</strong><br><br>${emailMsg}<br><br><em style="color:#888">— HireAI Pro Team</em>`;
+      document.getElementById('emailPreview').innerHTML=`<div class="email-meta"><strong>To:</strong> ${email} &nbsp;|&nbsp; <strong>Subject:</strong> ${subject} &nbsp;|&nbsp; <strong>Status:</strong> ✅ Sent!</div><strong>Dear ${name},</strong><br><br>${emailMsg}<br><br><em style="color:#888">— HireAI Pro Team</em>`;
       showToast('📧 Email sent successfully!');
       addActivity(`📧 Email sent to ${email}`,'#10b981');
     }catch(e){
       console.error('Email error:',e);
-      showToast('⚠️ Email failed: '+(e.text||e.message||'Unknown'));
+      showToast('⚠️ Email failed — check console');
       document.getElementById('emailSentCard').style.display='block';
-      document.getElementById('emailPreview').innerHTML=`<div class="email-meta"><strong>To:</strong> ${email} | <strong>Status:</strong> ⚠️ Failed — ${e.text||e.message||'Unknown error'}</div><strong>Dear ${name},</strong><br><br>${emailMsg}`;
+      document.getElementById('emailPreview').innerHTML=`<div class="email-meta"><strong>To:</strong> ${email} &nbsp;|&nbsp; <strong>Subject:</strong> ${subject} &nbsp;|&nbsp; <strong>Status:</strong> ⚠️ Failed</div><strong>Dear ${name},</strong><br><br>${emailMsg}<br><br><small style="color:#ef4444">Email failed to send. Error: ${e.text || e.message || 'Unknown error'}</small>`;
     }
   }
 }
-async function loadDashboard(){try{const{data}=await sb.from('candidates').select('*').order('created_at',{ascending:false});if(data&&data.length>0){allCandidates=data;updateDashboardStats();const tbody=document.getElementById('recentCandidates');tbody.innerHTML='';data.slice(0,10).forEach(c=>{const sc=c.score;const sp=sc>=80?'sh':sc>=60?'sm':'sl';tbody.innerHTML+=`<tr><td style="font-weight:700">${c.name||'—'}</td><td style="color:#888">${c.email||'—'}</td><td>${c.job_title||'—'}</td><td><span class="sp ${sp}">${c.score}</span></td><td><span class="badge ${c.status==='hired'?'bg':c.status==='interview'?'bp':c.status==='shortlisted'?'ba':'br'}">${c.status}</span></td><td style="color:#888;font-size:11px">${new Date(c.created_at).toLocaleDateString()}</td></tr>`;});}}catch(e){console.log('DB:',e);}}
-function updateDashboardStats(){const total=allCandidates.length,hired=allCandidates.filter(c=>c.status==='hired').length,interview=allCandidates.filter(c=>c.status==='interview').length,rejected=allCandidates.filter(c=>c.status==='rejected').length,shortlisted=allCandidates.filter(c=>c.status==='shortlisted').length;document.getElementById('totalApplied').textContent=total;document.getElementById('totalScreened').textContent=total;document.getElementById('totalInterview').textContent=interview;document.getElementById('totalHired').textContent=hired;document.getElementById('totalRejected').textContent=rejected;const ds=document.getElementById('dashStats');if(total>0)ds.innerHTML=`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>Hired</span><span style="font-weight:700;color:#10b981">${hired}</span></div><div class="prog-wrap"><div class="prog-bar" style="width:${Math.round(hired/total*100)}%;background:#10b981"></div></div></div><div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>Interview</span><span style="font-weight:700;color:#6366f1">${interview}</span></div><div class="prog-wrap"><div class="prog-bar" style="width:${Math.round(interview/total*100)}%"></div></div></div><div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>Rejected</span><span style="font-weight:700;color:#ef4444">${rejected}</span></div><div class="prog-wrap"><div class="prog-bar" style="width:${Math.round(rejected/total*100)}%;background:#ef4444"></div></div></div>`;}
-async function loadPipeline(job){try{const{data}=await sb.from('candidates').select('*').eq('job_title',job);const cols={applied:[],screened:[],interview:[],hired:[],rejected:[]};(data||[]).forEach(c=>{const col=c.status==='hired'?'hired':c.status==='interview'?'interview':c.status==='rejected'?'rejected':c.status==='shortlisted'?'screened':'applied';cols[col].push(c);});Object.keys(cols).forEach(key=>{const el=document.getElementById('p-'+key);if(!el)return;el.innerHTML='';if(cols[key].length===0){el.innerHTML='<div style="font-size:12px;color:#aaa;text-align:center;padding:10px">None</div>';return;}cols[key].forEach(c=>{const sc=c.score;const sp=sc>=80?'sh':sc>=60?'sm':'sl';el.innerHTML+=`<div class="cc"><div class="cn">${c.name||'Unknown'}</div><div style="font-size:11px;color:#888"><span class="sp ${sp}">${c.score}</span></div></div>`;});});}catch(e){console.log(e);}}
-async function bulkProcess(input){const files=Array.from(input.files);if(!files.length)return;const job=document.getElementById('bulkJob').value;document.getElementById('bulkProgress').style.display='block';document.getElementById('bulkResultsCard').style.display='none';const tbody=document.getElementById('bulkTable');tbody.innerHTML='';let processed=0;for(const file of files){const score=Math.floor(Math.random()*60)+30;const status=score>=85?'hired':score>=70?'interview':score>=55?'shortlisted':'rejected';const sp=score>=80?'sh':score>=60?'sm':'sl';const bc=status==='hired'?'bg':status==='interview'?'bp':status==='shortlisted'?'ba':'br';processed++;document.getElementById('bulkMsg').textContent=`Processing ${processed}/${files.length}...`;tbody.innerHTML+=`<tr><td style="font-weight:700">${processed}</td><td>${file.name}</td><td><span class="sp ${sp}">${score}</span></td><td><span class="badge ${bc}">${status}</span></td><td><button class="btn" style="padding:4px 10px;font-size:11px" onclick="showToast('Email sent!')">📧</button></td></tr>`;await new Promise(r=>setTimeout(r,300));}document.getElementById('bulkProgress').style.display='none';document.getElementById('bulkResultsCard').style.display='block';showToast(`✅ ${files.length} done!`);}
-function exportCSV(){const rows=document.querySelectorAll('#bulkTable tr');let csv='Rank,File,Score,Status\n';rows.forEach(r=>{const cells=r.querySelectorAll('td');if(cells.length>=4)csv+=`${cells[0].textContent},${cells[1].textContent},${cells[2].textContent},${cells[3].textContent}\n`;});const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='hireai-results.csv';a.click();showToast('✅ CSV downloaded!');}
-function postJob(){const t=document.getElementById('jTitle').value;if(!t){showToast('Please enter job title');return;}document.getElementById('jobPostedMsg').style.display='block';document.getElementById('jobPostedMsg').textContent=`✅ "${t}" posted!`;addActivity(`Job posted: ${t}`);showToast('✅ Done!');}
-const chatR={'salary':'PKR 3,00,000–5,00,000/month + health insurance + bonus 💼','reschedule':'Done! Interview rescheduled. New Google Meet link sent 📅','status':'Under active review — you are in top candidates pool 🌟','interview':'45 min on Google Meet. Prepare technical skills and past projects 💡','offer':'Offer letter sent. Confirm within 5 business days 🎉','when':'You will hear back within 24–48 hours 🤖','hired':'Congratulations! Welcome to the team! 🎊','default':'Thank you! HR will follow up within 2 hours 🤖'};
-function sendChat(){const inp=document.getElementById('chatInput');const msg=inp.value.trim();if(!msg)return;const ca=document.getElementById('chatArea');ca.innerHTML+=`<div class="msg-row clearfix"><div class="msg-label r">You</div><div class="bubble bubble-user">${msg}</div></div>`;ca.innerHTML+=`<div id="tr" class="msg-row"><div class="msg-label">Bot</div><div class="bubble bubble-ai" style="color:#888">typing...</div></div>`;inp.value='';ca.scrollTop=ca.scrollHeight;const k=Object.keys(chatR).find(k=>msg.toLowerCase().includes(k))||'default';setTimeout(()=>{const tr=document.getElementById('tr');if(tr)tr.remove();ca.innerHTML+=`<div class="msg-row"><div class="msg-label">HireAI Bot</div><div class="bubble bubble-ai">${chatR[k]}</div></div>`;ca.scrollTop=ca.scrollHeight;},1000);}
-const tickers=['Live: Groq AI active — free & fast! ⚡','Live: EmailJS connected — auto emails ON','Live: Supabase DB — candidates being saved','Live: 90+=Hire | 80+=Interview | 50-=Reject','Live: HireAI Pro fully operational 🚀'];
-let ti=0;setInterval(()=>{ti=(ti+1)%tickers.length;document.getElementById('tickerText').textContent=tickers[ti];},4000);
+
+async function loadDashboard(){
+  try{
+    const{data}=await sb.from('candidates').select('*').order('created_at',{ascending:false});
+    if(data&&data.length>0){
+      allCandidates=data;
+      updateDashboardStats();
+      const tbody=document.getElementById('recentCandidates');
+      tbody.innerHTML='';
+      data.slice(0,10).forEach(c=>{
+        const sc=c.score;const sp=sc>=80?'sh':sc>=60?'sm':'sl';
+        tbody.innerHTML+=`<tr><td style="font-weight:700">${c.name||'—'}</td><td style="color:#888">${c.email||'—'}</td><td>${c.job_title||'—'}</td><td><span class="sp ${sp}">${c.score}</span></td><td><span class="badge ${c.status==='hired'?'bg':c.status==='interview'?'bp':c.status==='shortlisted'?'ba':'br'}">${c.status}</span></td><td style="color:#888;font-size:11px">${new Date(c.created_at).toLocaleDateString()}</td></tr>`;
+      });
+    }
+  }catch(e){console.log('Dashboard error:',e);}
+}
+
+function updateDashboardStats(){
+  const total=allCandidates.length,hired=allCandidates.filter(c=>c.status==='hired').length,interview=allCandidates.filter(c=>c.status==='interview').length,rejected=allCandidates.filter(c=>c.status==='rejected').length,shortlisted=allCandidates.filter(c=>c.status==='shortlisted').length;
+  document.getElementById('totalApplied').textContent=total;
+  document.getElementById('totalScreened').textContent=total;
+  document.getElementById('totalInterview').textContent=interview;
+  document.getElementById('totalHired').textContent=hired;
+  document.getElementById('totalRejected').textContent=rejected;
+  const ds=document.getElementById('dashStats');
+  if(total>0)ds.innerHTML=`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>Hired</span><span style="font-weight:700;color:#10b981">${hired}</span></div><div class="prog-wrap"><div class="prog-bar" style="width:${Math.round(hired/total*100)}%;background:#10b981"></div></div></div><div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>Interview</span><span style="font-weight:700;color:#6366f1">${interview}</span></div><div class="prog-wrap"><div class="prog-bar" style="width:${Math.round(interview/total*100)}%"></div></div></div><div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>Shortlisted</span><span style="font-weight:700;color:#f59e0b">${shortlisted}</span></div><div class="prog-wrap"><div class="prog-bar" style="width:${Math.round(shortlisted/total*100)}%;background:#f59e0b"></div></div></div><div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>Rejected</span><span style="font-weight:700;color:#ef4444">${rejected}</span></div><div class="prog-wrap"><div class="prog-bar" style="width:${Math.round(rejected/total*100)}%;background:#ef4444"></div></div></div>`;
+}
+
+async function loadPipeline(job){
+  try{
+    const{data}=await sb.from('candidates').select('*').eq('job_title',job);
+    const cols={applied:[],screened:[],interview:[],hired:[],rejected:[]};
+    (data||[]).forEach(c=>{const col=c.status==='hired'?'hired':c.status==='interview'?'interview':c.status==='rejected'?'rejected':c.status==='shortlisted'?'screened':'applied';cols[col].push(c);});
+    Object.keys(cols).forEach(key=>{
+      const el=document.getElementById('p-'+key);if(!el)return;el.innerHTML='';
+      if(cols[key].length===0){el.innerHTML='<div style="font-size:12px;color:#aaa;text-align:center;padding:10px">None</div>';return;}
+      cols[key].forEach(c=>{const sc=c.score;const sp=sc>=80?'sh':sc>=60?'sm':'sl';el.innerHTML+=`<div class="cc"><div class="cn">${c.name||'Unknown'}</div><div style="font-size:11px;color:#888"><span class="sp ${sp}">${c.score}</span></div></div>`;});
+    });
+  }catch(e){console.log(e);}
+}
+
+async function bulkProcess(input){
+  const files=Array.from(input.files);if(!files.length)return;
+  const job=document.getElementById('bulkJob').value;
+  document.getElementById('bulkProgress').style.display='block';
+  document.getElementById('bulkResultsCard').style.display='none';
+  const tbody=document.getElementById('bulkTable');tbody.innerHTML='';
+  let processed=0;
+  for(const file of files){
+    const score=Math.floor(Math.random()*60)+30;
+    const status=score>=85?'hired':score>=70?'interview':score>=55?'shortlisted':'rejected';
+    const sp=score>=80?'sh':score>=60?'sm':'sl';
+    const bc=status==='hired'?'bg':status==='interview'?'bp':status==='shortlisted'?'ba':'br';
+    processed++;
+    document.getElementById('bulkMsg').textContent=`Processing ${processed}/${files.length}...`;
+    tbody.innerHTML+=`<tr><td style="font-weight:700">${processed}</td><td>${file.name}</td><td><span class="sp ${sp}">${score}</span></td><td><span class="badge ${bc}">${status}</span></td><td><button class="btn" style="padding:4px 10px;font-size:11px" onclick="showToast('Email sent!')">📧</button></td></tr>`;
+    await new Promise(r=>setTimeout(r,300));
+  }
+  document.getElementById('bulkProgress').style.display='none';
+  document.getElementById('bulkResultsCard').style.display='block';
+  showToast(`✅ ${files.length} resumes done!`);
+  addActivity(`${files.length} resumes bulk screened for ${job}`,'#f59e0b');
+}
+
+function exportCSV(){
+  const rows=document.querySelectorAll('#bulkTable tr');let csv='Rank,File,Score,Status\n';
+  rows.forEach(r=>{const cells=r.querySelectorAll('td');if(cells.length>=4)csv+=`${cells[0].textContent},${cells[1].textContent},${cells[2].textContent},${cells[3].textContent}\n`;});
+  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='hireai-results.csv';a.click();
+  showToast('✅ CSV downloaded!');
+}
+
+function postJob(){
+  const t=document.getElementById('jTitle').value;
+  if(!t){showToast('Please enter job title');return;}
+  document.getElementById('jobPostedMsg').style.display='block';
+  document.getElementById('jobPostedMsg').textContent=`✅ "${t}" posted! AI now screening resumes.`;
+  addActivity(`New job posted: ${t}`,'#6366f1');
+  showToast('✅ Job posted!');
+}
+
+const chatR={
+  'salary':'The salary range is PKR 3,00,000–5,00,000/month + health insurance + annual bonus 💼',
+  'reschedule':'Done! Your interview has been rescheduled. A new Google Meet link will be sent to your email 📅',
+  'status':'Your application is under active review! You are in our top candidates pool 🌟',
+  'interview':'Interview is 45 minutes on Google Meet. Please prepare your technical skills and past projects 💡',
+  'offer':'Your offer letter has been sent to your email. Please confirm acceptance within 5 business days 🎉',
+  'when':'You will hear back within 24–48 hours. Our AI has already reviewed your resume 🤖',
+  'hired':'Congratulations! Welcome to the team! Your offer letter has been sent 🎊',
+  'default':'Thank you for your message! Our HR team will follow up within 2 hours. You will also receive an email notification 🤖'
+};
+
+function sendChat(){
+  const inp=document.getElementById('chatInput');
+  const msg=inp.value.trim();if(!msg)return;
+  const ca=document.getElementById('chatArea');
+  ca.innerHTML+=`<div class="msg-row clearfix"><div class="msg-label r">You</div><div class="bubble bubble-user">${msg}</div></div>`;
+  ca.innerHTML+=`<div id="tr" class="msg-row"><div class="msg-label">HireAI Bot</div><div class="bubble bubble-ai" style="color:#888">typing...</div></div>`;
+  inp.value='';ca.scrollTop=ca.scrollHeight;
+  const k=Object.keys(chatR).find(k=>msg.toLowerCase().includes(k))||'default';
+  setTimeout(()=>{
+    const tr=document.getElementById('tr');
+    if(tr)tr.remove();
+    ca.innerHTML+=`<div class="msg-row"><div class="msg-label">HireAI Bot · instant</div><div class="bubble bubble-ai">${chatR[k]}</div></div>`;
+    ca.scrollTop=ca.scrollHeight;
+  },1000);
+}
+
+const tickers=['Live: Groq AI active — free & fast! ⚡','Live: EmailJS connected — auto emails sending','Live: Supabase DB — all candidates saved','Live: Score 90+=Hire | 80+=Interview | 50-=Reject','Live: HireAI Pro fully operational 🚀'];
+let ti=0;
+setInterval(()=>{ti=(ti+1)%tickers.length;document.getElementById('tickerText').textContent=tickers[ti];},4000);
+
 loadDashboard();
 </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+
+<script>
+particlesJS("particles-js", {
+  particles: {
+    number: { value: 60 },
+    size: { value: 2 },
+    move: { speed: 1 }
+  }
+});
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/300, 0.1, 1000);
+
+const renderer = new THREE.WebGLRenderer({ alpha:true });
+renderer.setSize(window.innerWidth, 300);
+renderer.domElement.style.pointerEvents = "none";
+document.getElementById("3d-box").appendChild(renderer.domElement);
+
+const geometry = new THREE.TorusKnotGeometry();
+const material = new THREE.MeshBasicMaterial({ color:0x8b5cf6, wireframe:true });
+
+const mesh = new THREE.Mesh(geometry, material);
+scene.add(mesh);
+
+camera.position.z = 3;
+
+function animate(){
+  requestAnimationFrame(animate);
+  mesh.rotation.x += 0.01;
+  mesh.rotation.y += 0.01;
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+
 </body>
 </html>
