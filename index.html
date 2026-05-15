@@ -37,10 +37,7 @@ body{
   box-shadow:0 20px 60px rgba(0,0,0,0.4);
   transition:all .3s ease
 }
-
-.card:hover{
-  transform:translateY(-8px) scale(1.02)
-}
+.card:hover{transform:translateY(-8px) scale(1.02)}
 .card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;margin-bottom:16px}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px}
 .stat{background:#f8f9fe;border-radius:12px;padding:16px;text-align:center;border:1.5px solid #e8e8f0}
@@ -117,15 +114,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
 .ticker{background:#fff;border:1.5px solid #e8e8f0;border-radius:10px;padding:10px 16px;font-size:12px;color:#666;display:flex;align-items:center;gap:8px;margin-bottom:16px}
 .ticker-dot{width:7px;height:7px;border-radius:50%;background:#10b981;flex-shrink:0;animation:blink 1.5s infinite}
 .tip{background:#eef2ff;border-left:3px solid #6366f1;border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#4338ca;margin:10px 0;line-height:1.6}
-
-#particles-js{
-  position:fixed;
-  width:100%;
-  height:100%;
-  z-index:-1;
-  pointer-events:none
-}
-
+#particles-js{position:fixed;width:100%;height:100%;z-index:-1;pointer-events:none}
+.debug-box{background:#fee2e2;border:1px solid #ef4444;border-radius:8px;padding:12px;margin:10px 0;font-size:12px;color:#991b1b;white-space:pre-wrap;word-break:break-word}
 </style>
 </head>
 <body>
@@ -219,6 +209,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <label>Candidate Name</label><input type="text" id="rName" placeholder="Full name">
     <div class="tip">📧 Auto-email will be sent based on AI score automatically.</div>
     <div class="btn-row"><button class="btn btn-primary" id="analyzeBtn" onclick="analyzeResume()" disabled>⚡ Analyze + Auto Email</button></div>
+    <div id="debugArea"></div>
   </div>
   <div id="scanWrap" style="display:none" class="scan-wrap">
     <div style="font-size:14px;font-weight:700;color:#6366f1">🤖 AI scanning resume...</div>
@@ -322,7 +313,6 @@ const EMAILJS_PUBLIC='6GhtJK8vvpWaWwY9J';
 const SUPABASE_URL='https://neicnwazsszmdsyyqlnw.supabase.co';
 const SUPABASE_KEY='sb_publishable_4iZSiIDROottJdaSLAwIKQ_cxsCno-R';
 
-// EmailJS init - FIXED
 window.onload = function() {
   emailjs.init(EMAILJS_PUBLIC);
 };
@@ -340,6 +330,11 @@ function resetScreen(){clearFile();document.getElementById('resultsWrap').style.
 
 const scanMsgs=['Parsing document...','Extracting skills...','Matching keywords...','Running ATS check...','Generating recommendations...','Determining action...'];
 
+function showDebug(msg){
+  const box=document.getElementById('debugArea');
+  box.innerHTML=`<div class="debug-box">${msg}</div>`;
+}
+
 async function analyzeResume(){
   const job=document.getElementById('rJob').value;
   const email=document.getElementById('rEmail').value;
@@ -348,21 +343,58 @@ async function analyzeResume(){
   document.getElementById('scanWrap').style.display='block';
   document.getElementById('resultsWrap').style.display='none';
   document.getElementById('analyzeBtn').disabled=true;
+  showDebug('Starting API call...');
   let mi=0;
   const iv=setInterval(()=>{mi=(mi+1)%scanMsgs.length;document.getElementById('scanMsg').textContent=scanMsgs[mi];},1200);
-  const prompt=`You are an expert ATS resume analyzer. Analyze this resume for: "${job}".\nRESUME:\n---\n${resumeText.slice(0,3000)}\n---\nReply ONLY with valid JSON no markdown:\n{"score":<<0-100>,"scoreTitle":"<3 words>","scoreVerdict":"<2 sentences>","metrics":[{"label":"ATS Score","value":<<0-100>},{"label":"Keyword Match","value":<<0-100>},{"label":"Impact Level","value":<<0-100>},{"label":"Format Quality","value":<<0-100>}],"strengths":["...","...","..."],"weaknesses":["...","...","..."],"keywords":[{"word":"...","match":true},{"word":"...","match":false}],"recommendations":["...","...","...","..."]}`;
+  
+  const prompt=`You are an expert ATS resume analyzer. Analyze this resume for: "${job}".
+RESUME:
+---
+${resumeText.slice(0,3000)}
+---
+Reply ONLY with valid JSON. Do not use markdown formatting. The JSON must follow this exact structure:
+{"score":85,"scoreTitle":"Strong Fit","scoreVerdict":"Candidate matches most requirements and has relevant experience.","metrics":[{"label":"ATS Score","value":85},{"label":"Keyword Match","value":80},{"label":"Impact Level","value":75},{"label":"Format Quality","value":90}],"strengths":["Good experience","Relevant skills","Clear formatting"],"weaknesses":["Missing certification","Could add more metrics"],"keywords":[{"word":"Python","match":true},{"word":"TensorFlow","match":false}],"recommendations":["Add metrics","Include certifications","Improve summary"]}`;
+  
   try{
-    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`,{
+    const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
+    showDebug('Calling API...');
+    const res=await fetch(url,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify({
         contents:[{parts:[{text:prompt}]}],
-        generationConfig:{temperature:0.3,maxOutputTokens:1000}
+        generationConfig:{temperature:0.2,maxOutputTokens:1500}
       })
     });
+    showDebug(`API Status: ${res.status} ${res.statusText}`);
     const data=await res.json();
-    const txt=data.candidates[0].content.parts[0].text.replace(/```json|```/g,'').trim();
+    
+    if(data.error){
+      const errMsg=`API ERROR: ${data.error.message || JSON.stringify(data.error)}`;
+      showDebug(errMsg);
+      throw new Error(errMsg);
+    }
+    
+    if(!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts){
+      showDebug('Invalid response structure. Full response: ' + JSON.stringify(data).slice(0,500));
+      throw new Error("Invalid response structure from API");
+    }
+    
+    let txt = data.candidates[0].content.parts[0].text;
+    showDebug('Got response, parsing JSON...');
+    
+    const jsonMatch = txt.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if(jsonMatch) txt = jsonMatch[1].trim();
+    else txt = txt.trim();
+    
+    const firstBrace = txt.indexOf('{');
+    const lastBrace = txt.lastIndexOf('}');
+    if(firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace){
+      txt = txt.substring(firstBrace, lastBrace + 1);
+    }
+    
     const r=JSON.parse(txt);
+    showDebug('Success! Score: ' + r.score);
     clearInterval(iv);
     document.getElementById('scanWrap').style.display='none';
     await renderResults(r,job,email,name);
@@ -370,13 +402,13 @@ async function analyzeResume(){
     clearInterval(iv);
     document.getElementById('scanWrap').style.display='none';
     document.getElementById('analyzeBtn').disabled=false;
-    showToast('❌ AI Failed — try again');
-    console.error(e);
+    const errMsg = e.message || "Unknown error";
+    showDebug('FAILED: ' + errMsg);
+    showToast('❌ AI Failed — see red debug box above');
   }
 }
 
 async function sendEmailJS(to_email, name, subject, message) {
-  // Re-init every time to be safe
   emailjs.init(EMAILJS_PUBLIC);
   return emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
     to_email: to_email,
@@ -387,7 +419,7 @@ async function sendEmailJS(to_email, name, subject, message) {
 }
 
 async function renderResults(r,job,email,name){
-  const score=Math.max(0,Math.min(100,r.score));
+  const score=Math.max(0,Math.min(100,r.score||0));
   document.getElementById('scoreNum').textContent=score;
   document.getElementById('scoreTitle').textContent=r.scoreTitle||'Done';
   document.getElementById('scoreVerdict').textContent=r.scoreVerdict||'';
@@ -402,7 +434,7 @@ async function renderResults(r,job,email,name){
   document.getElementById('autoActionBadge').innerHTML=`<span class="badge ${bc}" style="font-size:13px;padding:6px 14px">${actionLabel}</span>`;
   const mg=document.getElementById('metricsGrid');mg.innerHTML='';
   const colors=['#6366f1','#10b981','#f59e0b','#ef4444'];
-  (r.metrics||[]).forEach((m,i)=>{const v=Math.max(0,Math.min(100,m.value));mg.innerHTML+=`<div class="stat"><div class="stat-n" style="color:${colors[i]}">${v}</div><div class="stat-l">${m.label}</div><div class="prog-wrap"><div class="prog-bar" id="pb${i}" style="width:0%;background:${colors[i]}"></div></div></div>`;setTimeout(()=>{const el=document.getElementById('pb'+i);if(el)el.style.width=v+'%';},200+i*80);});
+  (r.metrics||[]).forEach((m,i)=>{const v=Math.max(0,Math.min(100,m.value||0));mg.innerHTML+=`<div class="stat"><div class="stat-n" style="color:${colors[i]}">${v}</div><div class="stat-l">${m.label}</div><div class="prog-wrap"><div class="prog-bar" id="pb${i}" style="width:0%;background:${colors[i]}"></div></div></div>`;setTimeout(()=>{const el=document.getElementById('pb'+i);if(el)el.style.width=v+'%';},200+i*80);});
   const sl=document.getElementById('strList');sl.innerHTML='';(r.strengths||[]).forEach(s=>sl.innerHTML+=`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px"><span>✅</span><span>${s}</span></div>`);
   const wl=document.getElementById('weakList');wl.innerHTML='';(r.weaknesses||[]).forEach(w=>wl.innerHTML+=`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px"><span>⚠️</span><span>${w}</span></div>`);
   const kl=document.getElementById('kwList');kl.innerHTML='';(r.keywords||[]).forEach(k=>{const st=k.match?'background:#ede9fe;border:1px solid #c4b5fd;color:#5b21b6':'background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;text-decoration:line-through';kl.innerHTML+=`<span style="display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;margin:3px;font-family:monospace;${st}">${k.word}</span>`;});
@@ -410,7 +442,6 @@ async function renderResults(r,job,email,name){
   document.getElementById('resultsWrap').style.display='block';
   document.getElementById('analyzeBtn').disabled=false;
 
-  // Save to Supabase
   try{
     await sb.from('candidates').insert({name,email,job_title:job,score,status:action});
     allCandidates.push({name,email,job_title:job,score,status:action});
@@ -419,7 +450,6 @@ async function renderResults(r,job,email,name){
     showToast('✅ Saved to database!');
   }catch(e){console.log('DB error:',e);}
 
-  // Send Email
   if(email && email.trim() !== ''){
     const subject=score>=90?'🎉 Congratulations — Job Offer!':score>=80?'📅 Interview Invitation':score>=60?'✅ Application Update':'Your Application Status — HireAI Pro';
     try{
@@ -553,7 +583,6 @@ loadDashboard();
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
-
 <script>
 particlesJS("particles-js", {
   particles: {
@@ -565,24 +594,18 @@ particlesJS("particles-js", {
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
 <script>
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/300, 0.1, 1000);
-
 const renderer = new THREE.WebGLRenderer({ alpha:true });
 renderer.setSize(window.innerWidth, 300);
 renderer.domElement.style.pointerEvents = "none";
 document.getElementById("3d-box").appendChild(renderer.domElement);
-
 const geometry = new THREE.TorusKnotGeometry();
 const material = new THREE.MeshBasicMaterial({ color:0x8b5cf6, wireframe:true });
-
 const mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
-
 camera.position.z = 3;
-
 function animate(){
   requestAnimationFrame(animate);
   mesh.rotation.x += 0.01;
@@ -591,6 +614,5 @@ function animate(){
 }
 animate();
 </script>
-
 </body>
 </html>
