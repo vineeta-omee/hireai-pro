@@ -8,7 +8,14 @@
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,sans-serif;background:radial-gradient(circle at 20% 30%,#1e3a8a,transparent),radial-gradient(circle at 80% 70%,#9333ea,transparent),#0f172a;color:#e2e8f0;min-height:100vh}
+body{
+  font-family:system-ui,sans-serif;
+  background: radial-gradient(circle at 20% 30%, #1e3a8a, transparent),
+              radial-gradient(circle at 80% 70%, #9333ea, transparent),
+              #0f172a;
+  color:#e2e8f0;
+  min-height:100vh
+}
 .topbar{background:#fff;border-bottom:1.5px solid #e8e8f0;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100}
 .logo{font-size:20px;font-weight:800;color:#1a1a2e}.logo span{color:#6366f1}
 .live-badge{background:#d4f7ee;color:#0a7a55;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:5px}
@@ -20,8 +27,20 @@ body{font-family:system-ui,sans-serif;background:radial-gradient(circle at 20% 3
 .nb:hover{color:#6366f1}
 .page{display:none;padding:20px;max-width:960px;margin:0 auto}
 .page.active{display:block}
-.card{background:rgba(255,255,255,0.06);backdrop-filter:blur(16px);border-radius:16px;border:1px solid rgba(255,255,255,0.1);padding:20px;margin-bottom:16px;box-shadow:0 20px 60px rgba(0,0,0,0.4);transition:all .3s ease}
-.card:hover{transform:translateY(-8px) scale(1.02)}
+.card{
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(16px);
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,0.1);
+  padding:20px;
+  margin-bottom:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.4);
+  transition:all .3s ease
+}
+
+.card:hover{
+  transform:translateY(-8px) scale(1.02)
+}
 .card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;margin-bottom:16px}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px}
 .stat{background:#f8f9fe;border-radius:12px;padding:16px;text-align:center;border:1.5px solid #e8e8f0}
@@ -98,64 +117,19 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
 .ticker{background:#fff;border:1.5px solid #e8e8f0;border-radius:10px;padding:10px 16px;font-size:12px;color:#666;display:flex;align-items:center;gap:8px;margin-bottom:16px}
 .ticker-dot{width:7px;height:7px;border-radius:50%;background:#10b981;flex-shrink:0;animation:blink 1.5s infinite}
 .tip{background:#eef2ff;border-left:3px solid #6366f1;border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#4338ca;margin:10px 0;line-height:1.6}
-#particles-js{position:fixed;width:100%;height:100%;z-index:-1;pointer-events:none}
-.auth-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.92);backdrop-filter:blur(18px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
-.auth-card{background:rgba(255,255,255,0.07);backdrop-filter:blur(24px);border:1.5px solid rgba(255,255,255,0.12);border-radius:20px;padding:32px;width:100%;max-width:420px;box-shadow:0 40px 100px rgba(0,0,0,0.6);color:#e2e8f0}
-.auth-card .logo{color:#e2e8f0;font-size:24px;margin-bottom:4px}
-.auth-card label{color:#aaa;margin-top:12px}
-.auth-card input{background:rgba(255,255,255,0.95);color:#1a1a2e}
-.auth-links{text-align:center;margin-top:14px;font-size:12px;color:#94a3b8}
-.auth-links a{color:#818cf8;text-decoration:none;font-weight:700;cursor:pointer}
-.auth-links a:hover{text-decoration:underline}
+
+#particles-js{
+  position:fixed;
+  width:100%;
+  height:100%;
+  z-index:-1;
+  pointer-events:none
+}
+
 </style>
 </head>
 <body>
 <div id="particles-js"></div>
-<div id="auth-overlay" class="auth-overlay" style="display:none">
-  <div class="auth-card">
-    <div id="auth-login">
-      <div style="text-align:center;margin-bottom:20px">
-        <div class="logo">HireAI <span>Pro</span> 🔐</div>
-        <div style="font-size:12px;color:#94a3b8;margin-top:4px">Secure Access</div>
-      </div>
-      <label>Email</label><input type="email" id="loginEmail" placeholder="you@company.com">
-      <label>Password</label><input type="password" id="loginPassword" placeholder="••••••••">
-      <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="login()">🔓 Login</button>
-      <button class="btn" style="width:100%;margin-top:8px;background:rgba(255,255,255,0.1);color:#e2e8f0;border-color:rgba(255,255,255,0.2)" onclick="skipLogin()">⚡ Skip Login (Demo Mode)</button>
-      <div class="auth-links"><a onclick="showForgot()">Forgot password?</a></div>
-      <div class="auth-links">No account? <a onclick="showRegister()">Create one</a></div>
-    </div>
-    <div id="auth-register" style="display:none">
-      <div style="text-align:center;margin-bottom:20px">
-        <div class="logo">HireAI <span>Pro</span> 📝</div>
-        <div style="font-size:12px;color:#94a3b8;margin-top:4px">Create Account</div>
-      </div>
-      <label>Full Name</label><input type="text" id="regName" placeholder="John Doe">
-      <label>Email</label><input type="email" id="regEmail" placeholder="you@company.com">
-      <label>Password</label><input type="password" id="regPassword" placeholder="Min 6 chars">
-      <label>Confirm</label><input type="password" id="regConfirm" placeholder="Repeat password">
-      <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="register()">✅ Create Account</button>
-      <div class="auth-links"><a onclick="showLogin()">← Back to login</a></div>
-    </div>
-    <div id="auth-forgot" style="display:none">
-      <div style="text-align:center;margin-bottom:20px">
-        <div class="logo">HireAI <span>Pro</span> 🔑</div>
-        <div style="font-size:12px;color:#94a3b8;margin-top:4px">Reset Password</div>
-      </div>
-      <div id="forgot-step1">
-        <label>Registered Email</label><input type="email" id="forgotEmail" placeholder="you@company.com">
-        <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="sendResetCode()">📧 Send Reset Code</button>
-      </div>
-      <div id="forgot-step2" style="display:none">
-        <label>Reset Code</label><input type="text" id="resetCode" placeholder="123456">
-        <label>New Password</label><input type="password" id="newPassword" placeholder="••••••••">
-        <label>Confirm New Password</label><input type="password" id="confirmNewPassword" placeholder="••••••••">
-        <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="verifyResetCode()">🔄 Reset Password</button>
-      </div>
-      <div class="auth-links"><a onclick="showLogin()">← Back to login</a></div>
-    </div>
-  </div>
-</div>
 <div class="topbar">
   <div class="logo">HireAI <span>Pro</span> ⚡</div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -163,7 +137,6 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <span class="badge bg">L2 Email</span>
     <span class="badge ba">L3 DB</span>
     <div class="live-badge"><div class="live-dot"></div> Live</div>
-    <div id="userDisplay" style="display:flex;align-items:center;gap:8px;margin-left:6px"></div>
   </div>
 </div>
 <div class="nav">
@@ -349,130 +322,13 @@ const EMAILJS_PUBLIC='6GhtJK8vvpWaWwY9J';
 const SUPABASE_URL='https://neicnwazsszmdsyyqlnw.supabase.co';
 const SUPABASE_KEY='sb_publishable_4iZSiIDROottJdaSLAwIKQ_cxsCno-R';
 
+// EmailJS init - FIXED
 window.onload = function() {
-  try{emailjs.init(EMAILJS_PUBLIC);}catch(e){console.warn('EmailJS init failed',e);}
-  checkAuth();
+  emailjs.init(EMAILJS_PUBLIC);
 };
 
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let resumeText='',uploadedFile=null,allCandidates=[],emailsSent=0;
-
-const AUTH_USERS_KEY='hireai_users';
-const AUTH_CURRENT_KEY='hireai_current_user';
-const AUTH_RESET_KEY='hireai_reset_codes';
-let _usersCache=null,_currentCache=null;
-
-function lsGet(k){try{return localStorage.getItem(k);}catch(e){console.warn('localStorage blocked:',e);return null;}}
-function lsSet(k,v){try{localStorage.setItem(k,v);return true;}catch(e){console.warn('localStorage blocked:',e);return false;}}
-function lsRemove(k){try{localStorage.removeItem(k);}catch(e){}}
-
-function getUsers(){if(_usersCache)return _usersCache;const raw=lsGet(AUTH_USERS_KEY);_usersCache=raw?JSON.parse(raw):[];return _usersCache;}
-function saveUsers(u){_usersCache=u;lsSet(AUTH_USERS_KEY,JSON.stringify(u));}
-function getCurrent(){if(_currentCache!==null)return _currentCache;const raw=lsGet(AUTH_CURRENT_KEY);_currentCache=raw?JSON.parse(raw):null;return _currentCache;}
-function setCurrent(u){_currentCache=u;if(u)lsSet(AUTH_CURRENT_KEY,JSON.stringify(u));else lsRemove(AUTH_CURRENT_KEY);}
-
-function showLogin(){
-  document.getElementById('auth-login').style.display='block';
-  document.getElementById('auth-register').style.display='none';
-  document.getElementById('auth-forgot').style.display='none';
-}
-function showRegister(){
-  document.getElementById('auth-login').style.display='none';
-  document.getElementById('auth-register').style.display='block';
-  document.getElementById('auth-forgot').style.display='none';
-}
-function showForgot(){
-  document.getElementById('auth-login').style.display='none';
-  document.getElementById('auth-register').style.display='none';
-  document.getElementById('auth-forgot').style.display='block';
-  document.getElementById('forgot-step1').style.display='block';
-  document.getElementById('forgot-step2').style.display='none';
-}
-function skipLogin(){
-  const demo={name:'Demo User',email:'demo@hireai.pro',password:'demo123',created_at:new Date().toISOString()};
-  const users=getUsers();
-  if(!users.find(u=>u.email==='demo@hireai.pro')){users.push(demo);saveUsers(users);}
-  setCurrent(demo);
-  showToast('Demo mode active!');
-  checkAuth();
-}
-function login(){
-  const email=document.getElementById('loginEmail').value.trim().toLowerCase();
-  const pass=document.getElementById('loginPassword').value;
-  if(!email||!pass){showToast('Please enter email and password');return;}
-  const users=getUsers();
-  const user=users.find(u=>u.email===email&&u.password===pass);
-  if(!user){showToast('Invalid email or password. Try Demo Mode if testing.');return;}
-  setCurrent(user);
-  showToast('Welcome back, '+user.name+'!');
-  checkAuth();
-}
-function register(){
-  const name=document.getElementById('regName').value.trim();
-  const email=document.getElementById('regEmail').value.trim().toLowerCase();
-  const pass=document.getElementById('regPassword').value;
-  const conf=document.getElementById('regConfirm').value;
-  if(!name||!email||!pass){showToast('Please fill all fields');return;}
-  if(pass!==conf){showToast('Passwords do not match');return;}
-  if(pass.length<<6){showToast('Password must be at least 6 characters');return;}
-  const users=getUsers();
-  if(users.find(u=>u.email===email)){showToast('Email already registered');return;}
-  const newUser={name,email,password:pass,created_at:new Date().toISOString()};
-  users.push(newUser);saveUsers(users);setCurrent(newUser);
-  showToast('Account created! Welcome.');checkAuth();
-}
-function logout(){
-  setCurrent(null);_usersCache=null;_currentCache=null;showToast('Logged out');checkAuth();
-}
-function checkAuth(){
-  const user=getCurrent();
-  const overlay=document.getElementById('auth-overlay');
-  if(!user){overlay.style.display='flex';showLogin();}
-  else{
-    overlay.style.display='none';
-    const ud=document.getElementById('userDisplay');
-    if(ud)ud.innerHTML=`<span style="font-size:12px;color:#555;font-weight:600">👤 ${user.name}</span><button class="btn" style="padding:4px 10px;font-size:11px;border-radius:6px" onclick="logout()">Logout</button>`;
-    loadDashboard();
-  }
-}
-
-async function sendResetCode(){
-  const email=document.getElementById('forgotEmail').value.trim().toLowerCase();
-  if(!email){showToast('Enter your registered email');return;}
-  const users=getUsers();
-  const user=users.find(u=>u.email===email);
-  if(!user){showToast('Email not found');return;}
-  const code=Math.floor(100000+Math.random()*900000).toString();
-  const codes=JSON.parse(lsGet(AUTH_RESET_KEY)||'[]');
-  const filtered=codes.filter(c=>c.email!==email);
-  filtered.push({email,code,expiry:Date.now()+15*60*1000});
-  lsSet(AUTH_RESET_KEY,JSON.stringify(filtered));
-  try{
-    await sendEmailJS(email,user.name,'HireAI Pro — Password Reset Code','Hello '+user.name+',\n\nYour password reset code is: '+code+'\n\nThis code expires in 15 minutes.\n\nIf you did not request this, please ignore.');
-    showToast('Reset code sent! Check your email.');
-    document.getElementById('forgot-step1').style.display='none';
-    document.getElementById('forgot-step2').style.display='block';
-  }catch(e){showToast('Email failed. Check console.');console.error(e);}
-}
-function verifyResetCode(){
-  const email=document.getElementById('forgotEmail').value.trim().toLowerCase();
-  const code=document.getElementById('resetCode').value.trim();
-  const newPass=document.getElementById('newPassword').value;
-  const confPass=document.getElementById('confirmNewPassword').value;
-  if(!code||!newPass||!confPass){showToast('Fill all fields');return;}
-  if(newPass!==confPass){showToast('Passwords do not match');return;}
-  if(newPass.length<<6){showToast('Password must be at least 6 characters');return;}
-  const codes=JSON.parse(lsGet(AUTH_RESET_KEY)||'[]');
-  const rec=codes.find(c=>c.email===email&&c.code===code);
-  if(!rec){showToast('Invalid reset code');return;}
-  if(Date.now()>rec.expiry){showToast('Code expired. Request a new one.');return;}
-  const users=getUsers();
-  const idx=users.findIndex(u=>u.email===email);
-  if(idx>-1){users[idx].password=newPass;saveUsers(users);}
-  lsSet(AUTH_RESET_KEY,JSON.stringify(codes.filter(c=>c.email!==email)));
-  showToast('Password reset! Please login.');
-  showLogin();
-}
 
 function nav(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');if(btn)btn.classList.add('active');if(id==='pipe')loadPipeline('AI / ML Engineer');if(id==='dash')loadDashboard();}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
@@ -494,7 +350,7 @@ async function analyzeResume(){
   document.getElementById('analyzeBtn').disabled=true;
   let mi=0;
   const iv=setInterval(()=>{mi=(mi+1)%scanMsgs.length;document.getElementById('scanMsg').textContent=scanMsgs[mi];},1200);
-  const prompt=`You are an expert ATS resume analyzer. Analyze this resume for: "${job}".\nRESUME:\n---\n${resumeText.slice(0,3000)}\n---\nReply ONLY with valid JSON no markdown:\n{"score":<<0-100>,"scoreTitle":"<3 words>","scoreVerdict":"<2 sentences>","metrics":[{"label":"ATS Score","value":<<0-100>},{"label":"Keyword Match","value":<<0-100>},{"label":"Impact Level","value":<<0-100>},{"label":"Format Quality","value":<<0-100>}],"strengths":["...","...","..."],"weaknesses":["...","...","..."],"keywords":[{"word":"...","match":true},{"word":"...","match":false}],"recommendations":["...","...","...","..."]}`;
+  const prompt=`You are an expert ATS resume analyzer. Analyze this resume for: "${job}".\nRESUME:\n---\n${resumeText.slice(0,3000)}\n---\nReply ONLY with valid JSON no markdown:\n{"score":<0-100>,"scoreTitle":"<3 words>","scoreVerdict":"<2 sentences>","metrics":[{"label":"ATS Score","value":<0-100>},{"label":"Keyword Match","value":<0-100>},{"label":"Impact Level","value":<0-100>},{"label":"Format Quality","value":<0-100>}],"strengths":["...","...","..."],"weaknesses":["...","...","..."],"keywords":[{"word":"...","match":true},{"word":"...","match":false}],"recommendations":["...","...","...","..."]}`;
   try{
     const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],temperature:0.3,max_tokens:1000})});
     const data=await res.json();
@@ -513,6 +369,7 @@ async function analyzeResume(){
 }
 
 async function sendEmailJS(to_email, name, subject, message) {
+  // Re-init every time to be safe
   emailjs.init(EMAILJS_PUBLIC);
   return emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
     to_email: to_email,
@@ -546,6 +403,7 @@ async function renderResults(r,job,email,name){
   document.getElementById('resultsWrap').style.display='block';
   document.getElementById('analyzeBtn').disabled=false;
 
+  // Save to Supabase
   try{
     await sb.from('candidates').insert({name,email,job_title:job,score,status:action});
     allCandidates.push({name,email,job_title:job,score,status:action});
@@ -554,6 +412,7 @@ async function renderResults(r,job,email,name){
     showToast('✅ Saved to database!');
   }catch(e){console.log('DB error:',e);}
 
+  // Send Email
   if(email && email.trim() !== ''){
     const subject=score>=90?'🎉 Congratulations — Job Offer!':score>=80?'📅 Interview Invitation':score>=60?'✅ Application Update':'Your Application Status — HireAI Pro';
     try{
@@ -652,36 +511,42 @@ function postJob(){
   showToast('✅ Job posted!');
 }
 
-async function sendChat(){
+const chatR={
+  'salary':'The salary range is PKR 3,00,000–5,00,000/month + health insurance + annual bonus 💼',
+  'reschedule':'Done! Your interview has been rescheduled. A new Google Meet link will be sent to your email 📅',
+  'status':'Your application is under active review! You are in our top candidates pool 🌟',
+  'interview':'Interview is 45 minutes on Google Meet. Please prepare your technical skills and past projects 💡',
+  'offer':'Your offer letter has been sent to your email. Please confirm acceptance within 5 business days 🎉',
+  'when':'You will hear back within 24–48 hours. Our AI has already reviewed your resume 🤖',
+  'hired':'Congratulations! Welcome to the team! Your offer letter has been sent 🎊',
+  'default':'Thank you for your message! Our HR team will follow up within 2 hours. You will also receive an email notification 🤖'
+};
+
+function sendChat(){
   const inp=document.getElementById('chatInput');
   const msg=inp.value.trim();if(!msg)return;
   const ca=document.getElementById('chatArea');
   ca.innerHTML+=`<div class="msg-row clearfix"><div class="msg-label r">You</div><div class="bubble bubble-user">${msg}</div></div>`;
   ca.innerHTML+=`<div id="tr" class="msg-row"><div class="msg-label">HireAI Bot</div><div class="bubble bubble-ai" style="color:#888">typing...</div></div>`;
   inp.value='';ca.scrollTop=ca.scrollHeight;
-  try{
-    const prompt=`You are HireAI Pro, a helpful AI assistant for an enterprise hiring automation platform. Answer the user's question briefly and professionally in 2-3 sentences.\n\nUser: ${msg}`;
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],temperature:0.7,max_tokens:300})});
-    const data=await res.json();
-    const reply=data.choices[0].message.content.trim();
-    const tr=document.getElementById('tr');if(tr)tr.remove();
-    ca.innerHTML+=`<div class="msg-row"><div class="msg-label">HireAI Bot · instant</div><div class="bubble bubble-ai">${reply}</div></div>`;
+  const k=Object.keys(chatR).find(k=>msg.toLowerCase().includes(k))||'default';
+  setTimeout(()=>{
+    const tr=document.getElementById('tr');
+    if(tr)tr.remove();
+    ca.innerHTML+=`<div class="msg-row"><div class="msg-label">HireAI Bot · instant</div><div class="bubble bubble-ai">${chatR[k]}</div></div>`;
     ca.scrollTop=ca.scrollHeight;
-  }catch(e){
-    const tr=document.getElementById('tr');if(tr)tr.remove();
-    ca.innerHTML+=`<div class="msg-row"><div class="msg-label">HireAI Bot</div><div class="bubble bubble-ai" style="color:#ef4444">Sorry, I couldn't connect to AI right now. Please try again.</div></div>`;
-    ca.scrollTop=ca.scrollHeight;console.error(e);
-  }
+  },1000);
 }
 
 const tickers=['Live: Groq AI active — free & fast! ⚡','Live: EmailJS connected — auto emails sending','Live: Supabase DB — all candidates saved','Live: Score 90+=Hire | 80+=Interview | 50-=Reject','Live: HireAI Pro fully operational 🚀'];
 let ti=0;
 setInterval(()=>{ti=(ti+1)%tickers.length;document.getElementById('tickerText').textContent=tickers[ti];},4000);
 
-checkAuth();
+loadDashboard();
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+
 <script>
 particlesJS("particles-js", {
   particles: {
@@ -693,18 +558,24 @@ particlesJS("particles-js", {
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
 <script>
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/300, 0.1, 1000);
+
 const renderer = new THREE.WebGLRenderer({ alpha:true });
 renderer.setSize(window.innerWidth, 300);
 renderer.domElement.style.pointerEvents = "none";
 document.getElementById("3d-box").appendChild(renderer.domElement);
+
 const geometry = new THREE.TorusKnotGeometry();
 const material = new THREE.MeshBasicMaterial({ color:0x8b5cf6, wireframe:true });
+
 const mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
+
 camera.position.z = 3;
+
 function animate(){
   requestAnimationFrame(animate);
   mesh.rotation.x += 0.01;
@@ -713,5 +584,6 @@ function animate(){
 }
 animate();
 </script>
+
 </body>
 </html>
