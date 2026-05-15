@@ -306,8 +306,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
 </div>
 
 <script>
-// ✅ OPENROUTER KEY
-const OPENROUTER_KEY='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';
+// ✅ NAYI OPENROUTER KEY
+const OPENROUTER_KEY='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';
 
 const EMAILJS_SERVICE='service_2jhvzq6';
 const EMAILJS_TEMPLATE='template_bjvf9yd';
@@ -337,7 +337,7 @@ function showDebug(msg){
   box.innerHTML=`<div class="debug-box">${msg}</div>`;
 }
 
-// ✅ OPENROUTER analyzeResume — FULLY FIXED
+// ✅ OPENROUTER analyzeResume — NAYI KEY KE SAATH
 async function analyzeResume(){
   const job=document.getElementById('rJob').value;
   const email=document.getElementById('rEmail').value;
@@ -370,7 +370,7 @@ Reply ONLY with valid JSON no markdown:
         'X-Title': 'HireAI Pro'
       },
       body:JSON.stringify({
-        model:'google/gemini-2.0-flash-001',
+        model:'google/gemini-2.0-flash-exp:free',
         messages:[{role:'user',content:prompt}],
         temperature:0.2,
         max_tokens:1500
@@ -378,16 +378,17 @@ Reply ONLY with valid JSON no markdown:
     });
     showDebug(`API Status: ${res.status} ${res.statusText}`);
     const data=await res.json();
+    console.log('FULL OPENROUTER RESPONSE:', data);
     
     if(data.error){
       const errMsg=`API ERROR: ${data.error.message || JSON.stringify(data.error)}`;
-      showDebug(errMsg);
+      showDebug(errMsg + '<br>Full: ' + JSON.stringify(data.error));
       throw new Error(errMsg);
     }
     
     if(!data.choices || !data.choices[0] || !data.choices[0].message){
-      showDebug('Invalid response structure. Full response: ' + JSON.stringify(data).slice(0,500));
-      throw new Error("Invalid response structure from API");
+      showDebug('Invalid response. Full: ' + JSON.stringify(data).slice(0,800));
+      throw new Error("Invalid response structure");
     }
     
     let txt = data.choices[0].message.content;
@@ -414,6 +415,7 @@ Reply ONLY with valid JSON no markdown:
     document.getElementById('analyzeBtn').disabled=false;
     const errMsg = e.message || "Unknown error";
     showDebug('FAILED: ' + errMsg);
+    console.error('FULL ERROR:', e);
     showToast('❌ AI Failed — see red debug box above');
   }
 }
