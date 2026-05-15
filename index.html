@@ -37,10 +37,7 @@ body{
   box-shadow:0 20px 60px rgba(0,0,0,0.4);
   transition:all .3s ease
 }
-
-.card:hover{
-  transform:translateY(-8px) scale(1.02)
-}
+.card:hover{transform:translateY(-8px) scale(1.02)}
 .card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;margin-bottom:16px}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px}
 .stat{background:#f8f9fe;border-radius:12px;padding:16px;text-align:center;border:1.5px solid #e8e8f0}
@@ -118,13 +115,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
 .ticker-dot{width:7px;height:7px;border-radius:50%;background:#10b981;flex-shrink:0;animation:blink 1.5s infinite}
 .tip{background:#eef2ff;border-left:3px solid #6366f1;border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#4338ca;margin:10px 0;line-height:1.6}
 
-#particles-js{
-  position:fixed;
-  width:100%;
-  height:100%;
-  z-index:-1;
-  pointer-events:none
-}
+#particles-js{position:fixed;width:100%;height:100%;z-index:-1;pointer-events:none}
 
 /* ── AUTH OVERLAY ── */
 .auth-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.92);backdrop-filter:blur(18px);z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -139,6 +130,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
 </head>
 <body>
 <div id="particles-js"></div>
+
+<!-- AUTH OVERLAY -->
 <div id="auth-overlay" class="auth-overlay" style="display:none">
   <div class="auth-card">
     <!-- LOGIN -->
@@ -150,6 +143,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
       <label>Email</label><input type="email" id="loginEmail" placeholder="you@company.com">
       <label>Password</label><input type="password" id="loginPassword" placeholder="••••••••">
       <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="login()">🔓 Login</button>
+      <button class="btn" style="width:100%;margin-top:8px;background:rgba(255,255,255,0.1);color:#e2e8f0;border-color:rgba(255,255,255,0.2)" onclick="skipLogin()">⚡ Skip Login (Demo Mode)</button>
       <div class="auth-links"><a onclick="showForgot()">Forgot password?</a></div>
       <div class="auth-links">No account? <a onclick="showRegister()">Create one</a></div>
     </div>
@@ -186,6 +180,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     </div>
   </div>
 </div>
+
 <div class="topbar">
   <div class="logo">HireAI <span>Pro</span> ⚡</div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -207,6 +202,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
   <button class="nb" onclick="nav('settings',this)">⚙️ Settings</button>
 </div>
 <div id="toast" class="toast"></div>
+
+<!-- DASHBOARD -->
 <div class="page active" id="page-dash">
   <div class="ticker"><div class="ticker-dot"></div><span id="tickerText">Live: HireAI Pro fully operational 🚀</span></div>
   <div id="3d-box" style="width:100%;height:300px;pointer-events:none"></div>
@@ -227,6 +224,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Name</th><th>Email</th><th>Job</th><th>Score</th><th>Status</th><th>Date</th></tr></thead><tbody id="recentCandidates"><tr><td colspan="6" style="text-align:center;color:#888;padding:20px">No candidates yet</td></tr></tbody></table></div>
   </div>
 </div>
+
+<!-- JOBS -->
 <div class="page" id="page-jobs">
   <div class="card">
     <div class="card-title">➕ Post New Job</div>
@@ -256,6 +255,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     </div>
   </div>
 </div>
+
+<!-- AI SCREEN -->
 <div class="page" id="page-screen">
   <div class="card">
     <div class="card-title">🤖 AI Resume Analyzer — Powered by Groq AI</div>
@@ -301,6 +302,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <div class="btn-row"><button class="btn btn-primary" onclick="analyzeResume()">🔄 Re-analyze</button><button class="btn" onclick="resetScreen()">📄 New Resume</button></div>
   </div>
 </div>
+
+<!-- BULK -->
 <div class="page" id="page-bulk">
   <div class="card">
     <div class="card-title">📦 Bulk Screening</div>
@@ -318,6 +321,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <div class="btn-row"><button class="btn btn-primary" onclick="exportCSV()">⬇ Export CSV</button></div>
   </div>
 </div>
+
+<!-- PIPELINE -->
 <div class="page" id="page-pipe">
   <div class="card" style="padding:14px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
@@ -334,6 +339,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <div class="tip">⚡ Score 85+ → Interview · Score 90+ → Hired · Score 50- → Rejected</div>
   </div>
 </div>
+
+<!-- EMAILS -->
 <div class="page" id="page-emails">
   <div class="two-col">
     <div>
@@ -346,6 +353,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     </div>
   </div>
 </div>
+
+<!-- CHAT -->
 <div class="page" id="page-chat">
   <div class="card">
     <div class="card-title">💬 AI Chat</div>
@@ -354,6 +363,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <div style="display:flex;gap:8px"><input type="text" id="chatInput" placeholder="e.g. What is the salary?" onkeydown="if(event.key==='Enter')sendChat()"><button class="btn btn-primary" onclick="sendChat()">Send</button></div>
   </div>
 </div>
+
+<!-- SETTINGS -->
 <div class="page" id="page-settings">
   <div class="card">
     <div class="card-title">⚙️ Automation</div>
@@ -379,25 +390,28 @@ const EMAILJS_PUBLIC='6GhtJK8vvpWaWwY9J';
 const SUPABASE_URL='https://neicnwazsszmdsyyqlnw.supabase.co';
 const SUPABASE_KEY='sb_publishable_4iZSiIDROottJdaSLAwIKQ_cxsCno-R';
 
-// EmailJS init - FIXED
 window.onload = function() {
-  emailjs.init(EMAILJS_PUBLIC);
+  try{emailjs.init(EMAILJS_PUBLIC);}catch(e){console.warn('EmailJS init failed',e);}
   checkAuth();
 };
 
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
 let resumeText='',uploadedFile=null,allCandidates=[],emailsSent=0;
 
-
 /* ───────── AUTH SYSTEM ───────── */
 const AUTH_USERS_KEY='hireai_users';
 const AUTH_CURRENT_KEY='hireai_current_user';
 const AUTH_RESET_KEY='hireai_reset_codes';
+let _usersCache=null,_currentCache=null;
 
-function getUsers(){return JSON.parse(localStorage.getItem(AUTH_USERS_KEY)||'[]');}
-function saveUsers(u){localStorage.setItem(AUTH_USERS_KEY,JSON.stringify(u));}
-function getCurrent(){return JSON.parse(localStorage.getItem(AUTH_CURRENT_KEY)||'null');}
-function setCurrent(u){u?localStorage.setItem(AUTH_CURRENT_KEY,JSON.stringify(u)):localStorage.removeItem(AUTH_CURRENT_KEY);}
+function lsGet(k){try{return localStorage.getItem(k);}catch(e){console.warn('localStorage blocked:',e);return null;}}
+function lsSet(k,v){try{localStorage.setItem(k,v);return true;}catch(e){console.warn('localStorage blocked:',e);return false;}}
+function lsRemove(k){try{localStorage.removeItem(k);}catch(e){}}
+
+function getUsers(){if(_usersCache)return _usersCache;const raw=lsGet(AUTH_USERS_KEY);_usersCache=raw?JSON.parse(raw):[];return _usersCache;}
+function saveUsers(u){_usersCache=u;lsSet(AUTH_USERS_KEY,JSON.stringify(u));}
+function getCurrent(){if(_currentCache!==null)return _currentCache;const raw=lsGet(AUTH_CURRENT_KEY);_currentCache=raw?JSON.parse(raw):null;return _currentCache;}
+function setCurrent(u){_currentCache=u;if(u)lsSet(AUTH_CURRENT_KEY,JSON.stringify(u));else lsRemove(AUTH_CURRENT_KEY);}
 
 function showLogin(){
   document.getElementById('auth-login').style.display='block';
@@ -416,13 +430,21 @@ function showForgot(){
   document.getElementById('forgot-step1').style.display='block';
   document.getElementById('forgot-step2').style.display='none';
 }
+function skipLogin(){
+  const demo={name:'Demo User',email:'demo@hireai.pro',password:'demo123',created_at:new Date().toISOString()};
+  const users=getUsers();
+  if(!users.find(u=>u.email==='demo@hireai.pro')){users.push(demo);saveUsers(users);}
+  setCurrent(demo);
+  showToast('Demo mode active!');
+  checkAuth();
+}
 function login(){
   const email=document.getElementById('loginEmail').value.trim().toLowerCase();
   const pass=document.getElementById('loginPassword').value;
   if(!email||!pass){showToast('Please enter email and password');return;}
   const users=getUsers();
   const user=users.find(u=>u.email===email&&u.password===pass);
-  if(!user){showToast('Invalid email or password');return;}
+  if(!user){showToast('Invalid email or password. Try Demo Mode if testing.');return;}
   setCurrent(user);
   showToast('Welcome back, '+user.name+'!');
   checkAuth();
@@ -442,7 +464,7 @@ function register(){
   showToast('Account created! Welcome.');checkAuth();
 }
 function logout(){
-  setCurrent(null);showToast('Logged out');checkAuth();
+  setCurrent(null);_usersCache=null;_currentCache=null;showToast('Logged out');checkAuth();
 }
 function checkAuth(){
   const user=getCurrent();
@@ -463,10 +485,10 @@ async function sendResetCode(){
   const user=users.find(u=>u.email===email);
   if(!user){showToast('Email not found');return;}
   const code=Math.floor(100000+Math.random()*900000).toString();
-  const codes=JSON.parse(localStorage.getItem(AUTH_RESET_KEY)||'[]');
+  const codes=JSON.parse(lsGet(AUTH_RESET_KEY)||'[]');
   const filtered=codes.filter(c=>c.email!==email);
   filtered.push({email,code,expiry:Date.now()+15*60*1000});
-  localStorage.setItem(AUTH_RESET_KEY,JSON.stringify(filtered));
+  lsSet(AUTH_RESET_KEY,JSON.stringify(filtered));
   try{
     await sendEmailJS(email,user.name,'HireAI Pro — Password Reset Code','Hello '+user.name+',\n\nYour password reset code is: '+code+'\n\nThis code expires in 15 minutes.\n\nIf you did not request this, please ignore.');
     showToast('Reset code sent! Check your email.');
@@ -482,14 +504,14 @@ function verifyResetCode(){
   if(!code||!newPass||!confPass){showToast('Fill all fields');return;}
   if(newPass!==confPass){showToast('Passwords do not match');return;}
   if(newPass.length<<6){showToast('Password must be at least 6 characters');return;}
-  const codes=JSON.parse(localStorage.getItem(AUTH_RESET_KEY)||'[]');
+  const codes=JSON.parse(lsGet(AUTH_RESET_KEY)||'[]');
   const rec=codes.find(c=>c.email===email&&c.code===code);
   if(!rec){showToast('Invalid reset code');return;}
   if(Date.now()>rec.expiry){showToast('Code expired. Request a new one.');return;}
   const users=getUsers();
   const idx=users.findIndex(u=>u.email===email);
   if(idx>-1){users[idx].password=newPass;saveUsers(users);}
-  localStorage.setItem(AUTH_RESET_KEY,JSON.stringify(codes.filter(c=>c.email!==email)));
+  lsSet(AUTH_RESET_KEY,JSON.stringify(codes.filter(c=>c.email!==email)));
   showToast('Password reset! Please login.');
   showLogin();
 }
@@ -534,7 +556,6 @@ async function analyzeResume(){
 }
 
 async function sendEmailJS(to_email, name, subject, message) {
-  // Re-init every time to be safe
   emailjs.init(EMAILJS_PUBLIC);
   return emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
     to_email: to_email,
@@ -568,7 +589,6 @@ async function renderResults(r,job,email,name){
   document.getElementById('resultsWrap').style.display='block';
   document.getElementById('analyzeBtn').disabled=false;
 
-  // Save to Supabase
   try{
     await sb.from('candidates').insert({name,email,job_title:job,score,status:action});
     allCandidates.push({name,email,job_title:job,score,status:action});
@@ -577,7 +597,6 @@ async function renderResults(r,job,email,name){
     showToast('✅ Saved to database!');
   }catch(e){console.log('DB error:',e);}
 
-  // Send Email
   if(email && email.trim() !== ''){
     const subject=score>=90?'🎉 Congratulations — Job Offer!':score>=80?'📅 Interview Invitation':score>=60?'✅ Application Update':'Your Application Status — HireAI Pro';
     try{
@@ -706,7 +725,6 @@ checkAuth();
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
-
 <script>
 particlesJS("particles-js", {
   particles: {
@@ -718,24 +736,18 @@ particlesJS("particles-js", {
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
 <script>
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/300, 0.1, 1000);
-
 const renderer = new THREE.WebGLRenderer({ alpha:true });
 renderer.setSize(window.innerWidth, 300);
 renderer.domElement.style.pointerEvents = "none";
 document.getElementById("3d-box").appendChild(renderer.domElement);
-
 const geometry = new THREE.TorusKnotGeometry();
 const material = new THREE.MeshBasicMaterial({ color:0x8b5cf6, wireframe:true });
-
 const mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
-
 camera.position.z = 3;
-
 function animate(){
   requestAnimationFrame(animate);
   mesh.rotation.x += 0.01;
@@ -744,6 +756,5 @@ function animate(){
 }
 animate();
 </script>
-
 </body>
 </html>
