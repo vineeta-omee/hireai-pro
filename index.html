@@ -306,7 +306,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
 </div>
 
 <script>
-// ✅ API KEY - SAME RAHEGI, KOI CHANGE NAHI
+// ✅ OPENROUTER KEY
 const OPENROUTER_KEY='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';
 
 const EMAILJS_SERVICE='service_2jhvzq6';
@@ -337,7 +337,7 @@ function showDebug(msg){
   box.innerHTML=`<div class="debug-box">${msg}</div>`;
 }
 
-// ✅ YEH NAAYA analyzeResume FUNCTION HAI — PROMPT UPDATE KE SAATH
+// ✅ OPENROUTER analyzeResume — FULLY FIXED
 async function analyzeResume(){
   const job=document.getElementById('rJob').value;
   const email=document.getElementById('rEmail').value;
@@ -359,14 +359,21 @@ Reply ONLY with valid JSON no markdown:
 {"score":<<0-100>,"scoreTitle":"<3 words>","scoreVerdict":"<2 sentences>","metrics":[{"label":"ATS Score","value":<<0-100>},{"label":"Keyword Match","value":<<0-100>},{"label":"Impact Level","value":<<0-100>},{"label":"Format Quality","value":<<0-100>}],"strengths":["...","...","..."],"weaknesses":["...","...","..."],"keywords":[{"word":"...","match":true},{"word":"...","match":false}],"recommendations":["...","...","..."]}`;
   
   try{
-    const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_KEY}`;
-    showDebug('Calling API...');
+    const url='https://openrouter.ai/api/v1/chat/completions';
+    showDebug('Calling OpenRouter API...');
     const res=await fetch(url,{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{
+        'Content-Type':'application/json',
+        'Authorization':`Bearer ${OPENROUTER_KEY}`,
+        'HTTP-Referer': window.location.href,
+        'X-Title': 'HireAI Pro'
+      },
       body:JSON.stringify({
-        contents:[{parts:[{text:prompt}]}],
-        generationConfig:{temperature:0.2,maxOutputTokens:1500}
+        model:'google/gemini-2.0-flash-001',
+        messages:[{role:'user',content:prompt}],
+        temperature:0.2,
+        max_tokens:1500
       })
     });
     showDebug(`API Status: ${res.status} ${res.statusText}`);
@@ -378,12 +385,12 @@ Reply ONLY with valid JSON no markdown:
       throw new Error(errMsg);
     }
     
-    if(!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts){
+    if(!data.choices || !data.choices[0] || !data.choices[0].message){
       showDebug('Invalid response structure. Full response: ' + JSON.stringify(data).slice(0,500));
       throw new Error("Invalid response structure from API");
     }
     
-    let txt = data.candidates[0].content.parts[0].text;
+    let txt = data.choices[0].message.content;
     showDebug('Got response, parsing JSON...');
     
     const jsonMatch = txt.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
