@@ -307,7 +307,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
 
 <script>
 // ✅ API KEY - SAME RAHEGI, KOI CHANGE NAHI
-const GEMINI_KEY='AIzaSyD0JsqWiIXYn3hm4bdBeFBOVOCHkIjbAYs';
+const OPENROUTER_KEY='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';
 
 const EMAILJS_SERVICE='service_2jhvzq6';
 const EMAILJS_TEMPLATE='template_bjvf9yd';
@@ -337,6 +337,7 @@ function showDebug(msg){
   box.innerHTML=`<div class="debug-box">${msg}</div>`;
 }
 
+// ✅ YEH NAAYA analyzeResume FUNCTION HAI — PROMPT UPDATE KE SAATH
 async function analyzeResume(){
   const job=document.getElementById('rJob').value;
   const email=document.getElementById('rEmail').value;
@@ -354,11 +355,10 @@ RESUME:
 ---
 ${resumeText.slice(0,3000)}
 ---
-Reply ONLY with valid JSON. Do not use markdown formatting. The JSON must follow this exact structure:
-{"score":85,"scoreTitle":"Strong Fit","scoreVerdict":"Candidate matches most requirements and has relevant experience.","metrics":[{"label":"ATS Score","value":85},{"label":"Keyword Match","value":80},{"label":"Impact Level","value":75},{"label":"Format Quality","value":90}],"strengths":["Good experience","Relevant skills","Clear formatting"],"weaknesses":["Missing certification","Could add more metrics"],"keywords":[{"word":"Python","match":true},{"word":"TensorFlow","match":false}],"recommendations":["Add metrics","Include certifications","Improve summary"]}`;
+Reply ONLY with valid JSON no markdown:
+{"score":<<0-100>,"scoreTitle":"<3 words>","scoreVerdict":"<2 sentences>","metrics":[{"label":"ATS Score","value":<<0-100>},{"label":"Keyword Match","value":<<0-100>},{"label":"Impact Level","value":<<0-100>},{"label":"Format Quality","value":<<0-100>}],"strengths":["...","...","..."],"weaknesses":["...","...","..."],"keywords":[{"word":"...","match":true},{"word":"...","match":false}],"recommendations":["...","...","..."]}`;
   
   try{
-    // ✅ FIXED: gemini-pro use kar rahe hain jo sab keys pe kaam karta hai
     const url=`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_KEY}`;
     showDebug('Calling API...');
     const res=await fetch(url,{
