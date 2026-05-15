@@ -301,12 +301,14 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <div class="card-title">🔗 Connected</div>
     <div class="settings-row"><div><div style="font-weight:700">EmailJS</div><div style="font-size:12px;color:#888">service_2jhvzq6 · vineetamalhii247@gmail.com</div></div><span class="badge bg">✅ Connected</span></div>
     <div class="settings-row"><div><div style="font-weight:700">Supabase</div><div style="font-size:12px;color:#888">neicnwazsszmdsyyqlnw</div></div><span class="badge bg">✅ Connected</span></div>
-    <div class="settings-row"><div><div style="font-weight:700">Google Gemini AI</div><div style="font-size:12px;color:#888">gemini-1.5-flash-latest · Free tier</div></div><span class="badge bg">✅ Connected</span></div>
+    <div class="settings-row"><div><div style="font-weight:700">Google Gemini AI</div><div style="font-size:12px;color:#888">gemini-pro · Free tier</div></div><span class="badge bg">✅ Connected</span></div>
   </div>
 </div>
 
 <script>
+// ✅ API KEY - SAME RAHEGI, KOI CHANGE NAHI
 const GEMINI_KEY='AIzaSyD1J4hQtwApJjJcMr8sPwywiQTTfpMh36E';
+
 const EMAILJS_SERVICE='service_2jhvzq6';
 const EMAILJS_TEMPLATE='template_bjvf9yd';
 const EMAILJS_PUBLIC='6GhtJK8vvpWaWwY9J';
@@ -356,8 +358,8 @@ Reply ONLY with valid JSON. Do not use markdown formatting. The JSON must follow
 {"score":85,"scoreTitle":"Strong Fit","scoreVerdict":"Candidate matches most requirements and has relevant experience.","metrics":[{"label":"ATS Score","value":85},{"label":"Keyword Match","value":80},{"label":"Impact Level","value":75},{"label":"Format Quality","value":90}],"strengths":["Good experience","Relevant skills","Clear formatting"],"weaknesses":["Missing certification","Could add more metrics"],"keywords":[{"word":"Python","match":true},{"word":"TensorFlow","match":false}],"recommendations":["Add metrics","Include certifications","Improve summary"]}`;
   
   try{
-    // FIXED: v1 instead of v1beta, gemini-1.5-flash-latest instead of gemini-1.5-flash
-    const url=`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_KEY}`;
+    // ✅ FIXED: gemini-pro use kar rahe hain jo sab keys pe kaam karta hai
+    const url=`https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${GEMINI_KEY}`;
     showDebug('Calling API...');
     const res=await fetch(url,{
       method:'POST',
