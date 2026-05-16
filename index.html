@@ -37,7 +37,10 @@ body{
   box-shadow:0 20px 60px rgba(0,0,0,0.4);
   transition:all .3s ease
 }
-.card:hover{transform:translateY(-8px) scale(1.02)}
+
+.card:hover{
+  transform:translateY(-8px) scale(1.02)
+}
 .card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;margin-bottom:16px}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px}
 .stat{background:#f8f9fe;border-radius:12px;padding:16px;text-align:center;border:1.5px solid #e8e8f0}
@@ -114,8 +117,15 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
 .ticker{background:#fff;border:1.5px solid #e8e8f0;border-radius:10px;padding:10px 16px;font-size:12px;color:#666;display:flex;align-items:center;gap:8px;margin-bottom:16px}
 .ticker-dot{width:7px;height:7px;border-radius:50%;background:#10b981;flex-shrink:0;animation:blink 1.5s infinite}
 .tip{background:#eef2ff;border-left:3px solid #6366f1;border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#4338ca;margin:10px 0;line-height:1.6}
-#particles-js{position:fixed;width:100%;height:100%;z-index:-1;pointer-events:none}
-.debug-box{background:#fee2e2;border:1px solid #ef4444;border-radius:8px;padding:12px;margin:10px 0;font-size:12px;color:#991b1b;white-space:pre-wrap;word-break:break-word}
+
+#particles-js{
+  position:fixed;
+  width:100%;
+  height:100%;
+  z-index:-1;
+  pointer-events:none
+}
+
 </style>
 </head>
 <body>
@@ -191,7 +201,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
 </div>
 <div class="page" id="page-screen">
   <div class="card">
-    <div class="card-title">🤖 AI Resume Analyzer — Powered by Google Gemini AI</div>
+    <div class="card-title">🤖 AI Resume Analyzer — Powered by Groq AI</div>
     <div class="drop-zone" id="dropZone" onclick="document.getElementById('rFile').click()">
       <div style="font-size:32px;margin-bottom:8px" id="dropIcon">📄</div>
       <div style="font-weight:700;font-size:15px" id="dropTitle">Drop resume or click to upload</div>
@@ -209,7 +219,6 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <label>Candidate Name</label><input type="text" id="rName" placeholder="Full name">
     <div class="tip">📧 Auto-email will be sent based on AI score automatically.</div>
     <div class="btn-row"><button class="btn btn-primary" id="analyzeBtn" onclick="analyzeResume()" disabled>⚡ Analyze + Auto Email</button></div>
-    <div id="debugArea"></div>
   </div>
   <div id="scanWrap" style="display:none" class="scan-wrap">
     <div style="font-size:14px;font-weight:700;color:#6366f1">🤖 AI scanning resume...</div>
@@ -301,20 +310,19 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <div class="card-title">🔗 Connected</div>
     <div class="settings-row"><div><div style="font-weight:700">EmailJS</div><div style="font-size:12px;color:#888">service_2jhvzq6 · vineetamalhii247@gmail.com</div></div><span class="badge bg">✅ Connected</span></div>
     <div class="settings-row"><div><div style="font-weight:700">Supabase</div><div style="font-size:12px;color:#888">neicnwazsszmdsyyqlnw</div></div><span class="badge bg">✅ Connected</span></div>
-    <div class="settings-row"><div><div style="font-weight:700">Google Gemini AI</div><div style="font-size:12px;color:#888">gemini-pro · Free tier</div></div><span class="badge bg">✅ Connected</span></div>
+    <div class="settings-row"><div><div style="font-weight:700">Groq AI</div><div style="font-size:12px;color:#888">llama-3.3-70b · Free forever</div></div><span class="badge bg">✅ Connected</span></div>
   </div>
 </div>
 
 <script>
-// ✅ NAYI OPENROUTER KEY
-const OPENROUTER_KEY='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';
-
+const GROQ_KEY='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';
 const EMAILJS_SERVICE='service_2jhvzq6';
 const EMAILJS_TEMPLATE='template_bjvf9yd';
 const EMAILJS_PUBLIC='6GhtJK8vvpWaWwY9J';
 const SUPABASE_URL='https://neicnwazsszmdsyyqlnw.supabase.co';
 const SUPABASE_KEY='sb_publishable_4iZSiIDROottJdaSLAwIKQ_cxsCno-R';
 
+// EmailJS init - FIXED
 window.onload = function() {
   emailjs.init(EMAILJS_PUBLIC);
 };
@@ -332,12 +340,6 @@ function resetScreen(){clearFile();document.getElementById('resultsWrap').style.
 
 const scanMsgs=['Parsing document...','Extracting skills...','Matching keywords...','Running ATS check...','Generating recommendations...','Determining action...'];
 
-function showDebug(msg){
-  const box=document.getElementById('debugArea');
-  box.innerHTML=`<div class="debug-box">${msg}</div>`;
-}
-
-// ✅ OPENROUTER analyzeResume — NAYI KEY KE SAATH
 async function analyzeResume(){
   const job=document.getElementById('rJob').value;
   const email=document.getElementById('rEmail').value;
@@ -346,66 +348,14 @@ async function analyzeResume(){
   document.getElementById('scanWrap').style.display='block';
   document.getElementById('resultsWrap').style.display='none';
   document.getElementById('analyzeBtn').disabled=true;
-  showDebug('Starting API call...');
   let mi=0;
   const iv=setInterval(()=>{mi=(mi+1)%scanMsgs.length;document.getElementById('scanMsg').textContent=scanMsgs[mi];},1200);
-  
-  const prompt=`You are an expert ATS resume analyzer. Analyze this resume for: "${job}".
-RESUME:
----
-${resumeText.slice(0,3000)}
----
-Reply ONLY with valid JSON no markdown:
-{"score":<<0-100>,"scoreTitle":"<3 words>","scoreVerdict":"<2 sentences>","metrics":[{"label":"ATS Score","value":<<0-100>},{"label":"Keyword Match","value":<<0-100>},{"label":"Impact Level","value":<<0-100>},{"label":"Format Quality","value":<<0-100>}],"strengths":["...","...","..."],"weaknesses":["...","...","..."],"keywords":[{"word":"...","match":true},{"word":"...","match":false}],"recommendations":["...","...","..."]}`;
-  
+  const prompt=`You are an expert ATS resume analyzer. Analyze this resume for: "${job}".\nRESUME:\n---\n${resumeText.slice(0,3000)}\n---\nReply ONLY with valid JSON no markdown:\n{"score":<0-100>,"scoreTitle":"<3 words>","scoreVerdict":"<2 sentences>","metrics":[{"label":"ATS Score","value":<0-100>},{"label":"Keyword Match","value":<0-100>},{"label":"Impact Level","value":<0-100>},{"label":"Format Quality","value":<0-100>}],"strengths":["...","...","..."],"weaknesses":["...","...","..."],"keywords":[{"word":"...","match":true},{"word":"...","match":false}],"recommendations":["...","...","...","..."]}`;
   try{
-    const url='https://openrouter.ai/api/v1/chat/completions';
-    showDebug('Calling OpenRouter API...');
-    const res=await fetch(url,{
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'Authorization':`Bearer ${OPENROUTER_KEY}`,
-        'HTTP-Referer': window.location.href,
-        'X-Title': 'HireAI Pro'
-      },
-      body:JSON.stringify({
-        model:'google/gemini-2.0-flash-exp:free',
-        messages:[{role:'user',content:prompt}],
-        temperature:0.2,
-        max_tokens:1500
-      })
-    });
-    showDebug(`API Status: ${res.status} ${res.statusText}`);
+    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],temperature:0.3,max_tokens:1000})});
     const data=await res.json();
-    console.log('FULL OPENROUTER RESPONSE:', data);
-    
-    if(data.error){
-      const errMsg=`API ERROR: ${data.error.message || JSON.stringify(data.error)}`;
-      showDebug(errMsg + '<br>Full: ' + JSON.stringify(data.error));
-      throw new Error(errMsg);
-    }
-    
-    if(!data.choices || !data.choices[0] || !data.choices[0].message){
-      showDebug('Invalid response. Full: ' + JSON.stringify(data).slice(0,800));
-      throw new Error("Invalid response structure");
-    }
-    
-    let txt = data.choices[0].message.content;
-    showDebug('Got response, parsing JSON...');
-    
-    const jsonMatch = txt.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-    if(jsonMatch) txt = jsonMatch[1].trim();
-    else txt = txt.trim();
-    
-    const firstBrace = txt.indexOf('{');
-    const lastBrace = txt.lastIndexOf('}');
-    if(firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace){
-      txt = txt.substring(firstBrace, lastBrace + 1);
-    }
-    
+    const txt=data.choices[0].message.content.replace(/```json|```/g,'').trim();
     const r=JSON.parse(txt);
-    showDebug('Success! Score: ' + r.score);
     clearInterval(iv);
     document.getElementById('scanWrap').style.display='none';
     await renderResults(r,job,email,name);
@@ -413,14 +363,13 @@ Reply ONLY with valid JSON no markdown:
     clearInterval(iv);
     document.getElementById('scanWrap').style.display='none';
     document.getElementById('analyzeBtn').disabled=false;
-    const errMsg = e.message || "Unknown error";
-    showDebug('FAILED: ' + errMsg);
-    console.error('FULL ERROR:', e);
-    showToast('❌ AI Failed — see red debug box above');
+    showToast('❌ AI Failed — try again');
+    console.error(e);
   }
 }
 
 async function sendEmailJS(to_email, name, subject, message) {
+  // Re-init every time to be safe
   emailjs.init(EMAILJS_PUBLIC);
   return emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
     to_email: to_email,
@@ -431,7 +380,7 @@ async function sendEmailJS(to_email, name, subject, message) {
 }
 
 async function renderResults(r,job,email,name){
-  const score=Math.max(0,Math.min(100,r.score||0));
+  const score=Math.max(0,Math.min(100,r.score));
   document.getElementById('scoreNum').textContent=score;
   document.getElementById('scoreTitle').textContent=r.scoreTitle||'Done';
   document.getElementById('scoreVerdict').textContent=r.scoreVerdict||'';
@@ -446,7 +395,7 @@ async function renderResults(r,job,email,name){
   document.getElementById('autoActionBadge').innerHTML=`<span class="badge ${bc}" style="font-size:13px;padding:6px 14px">${actionLabel}</span>`;
   const mg=document.getElementById('metricsGrid');mg.innerHTML='';
   const colors=['#6366f1','#10b981','#f59e0b','#ef4444'];
-  (r.metrics||[]).forEach((m,i)=>{const v=Math.max(0,Math.min(100,m.value||0));mg.innerHTML+=`<div class="stat"><div class="stat-n" style="color:${colors[i]}">${v}</div><div class="stat-l">${m.label}</div><div class="prog-wrap"><div class="prog-bar" id="pb${i}" style="width:0%;background:${colors[i]}"></div></div></div>`;setTimeout(()=>{const el=document.getElementById('pb'+i);if(el)el.style.width=v+'%';},200+i*80);});
+  (r.metrics||[]).forEach((m,i)=>{const v=Math.max(0,Math.min(100,m.value));mg.innerHTML+=`<div class="stat"><div class="stat-n" style="color:${colors[i]}">${v}</div><div class="stat-l">${m.label}</div><div class="prog-wrap"><div class="prog-bar" id="pb${i}" style="width:0%;background:${colors[i]}"></div></div></div>`;setTimeout(()=>{const el=document.getElementById('pb'+i);if(el)el.style.width=v+'%';},200+i*80);});
   const sl=document.getElementById('strList');sl.innerHTML='';(r.strengths||[]).forEach(s=>sl.innerHTML+=`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px"><span>✅</span><span>${s}</span></div>`);
   const wl=document.getElementById('weakList');wl.innerHTML='';(r.weaknesses||[]).forEach(w=>wl.innerHTML+=`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px"><span>⚠️</span><span>${w}</span></div>`);
   const kl=document.getElementById('kwList');kl.innerHTML='';(r.keywords||[]).forEach(k=>{const st=k.match?'background:#ede9fe;border:1px solid #c4b5fd;color:#5b21b6':'background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;text-decoration:line-through';kl.innerHTML+=`<span style="display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;margin:3px;font-family:monospace;${st}">${k.word}</span>`;});
@@ -454,6 +403,7 @@ async function renderResults(r,job,email,name){
   document.getElementById('resultsWrap').style.display='block';
   document.getElementById('analyzeBtn').disabled=false;
 
+  // Save to Supabase
   try{
     await sb.from('candidates').insert({name,email,job_title:job,score,status:action});
     allCandidates.push({name,email,job_title:job,score,status:action});
@@ -462,6 +412,7 @@ async function renderResults(r,job,email,name){
     showToast('✅ Saved to database!');
   }catch(e){console.log('DB error:',e);}
 
+  // Send Email
   if(email && email.trim() !== ''){
     const subject=score>=90?'🎉 Congratulations — Job Offer!':score>=80?'📅 Interview Invitation':score>=60?'✅ Application Update':'Your Application Status — HireAI Pro';
     try{
@@ -587,7 +538,7 @@ function sendChat(){
   },1000);
 }
 
-const tickers=['Live: Google Gemini AI active — free & fast! ⚡','Live: EmailJS connected — auto emails sending','Live: Supabase DB — all candidates saved','Live: Score 90+=Hire | 80+=Interview | 50-=Reject','Live: HireAI Pro fully operational 🚀'];
+const tickers=['Live: Groq AI active — free & fast! ⚡','Live: EmailJS connected — auto emails sending','Live: Supabase DB — all candidates saved','Live: Score 90+=Hire | 80+=Interview | 50-=Reject','Live: HireAI Pro fully operational 🚀'];
 let ti=0;
 setInterval(()=>{ti=(ti+1)%tickers.length;document.getElementById('tickerText').textContent=tickers[ti];},4000);
 
@@ -595,6 +546,7 @@ loadDashboard();
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+
 <script>
 particlesJS("particles-js", {
   particles: {
@@ -606,18 +558,24 @@ particlesJS("particles-js", {
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
 <script>
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth/300, 0.1, 1000);
+
 const renderer = new THREE.WebGLRenderer({ alpha:true });
 renderer.setSize(window.innerWidth, 300);
 renderer.domElement.style.pointerEvents = "none";
 document.getElementById("3d-box").appendChild(renderer.domElement);
+
 const geometry = new THREE.TorusKnotGeometry();
 const material = new THREE.MeshBasicMaterial({ color:0x8b5cf6, wireframe:true });
+
 const mesh = new THREE.Mesh(geometry, material);
 scene.add(mesh);
+
 camera.position.z = 3;
+
 function animate(){
   requestAnimationFrame(animate);
   mesh.rotation.x += 0.01;
@@ -626,5 +584,6 @@ function animate(){
 }
 animate();
 </script>
+
 </body>
 </html>
