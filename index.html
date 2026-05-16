@@ -315,7 +315,6 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
 </div>
 
 <script>
-const GROQ_KEY='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';
 const EMAILJS_SERVICE='service_2jhvzq6';
 const EMAILJS_TEMPLATE='template_bjvf9yd';
 const EMAILJS_PUBLIC='6GhtJK8vvpWaWwY9J';
@@ -345,20 +344,46 @@ async function analyzeResume(){
   const email=document.getElementById('rEmail').value;
   const name=document.getElementById('rName').value||'Candidate';
   if(!job||!resumeText)return;
+
   document.getElementById('scanWrap').style.display='block';
   document.getElementById('resultsWrap').style.display='none';
   document.getElementById('analyzeBtn').disabled=true;
+
   let mi=0;
-  const iv=setInterval(()=>{mi=(mi+1)%scanMsgs.length;document.getElementById('scanMsg').textContent=scanMsgs[mi];},1200);
+  const iv=setInterval(()=>{
+    mi=(mi+1)%scanMsgs.length;
+    document.getElementById('scanMsg').textContent=scanMsgs[mi];
+  },1200);
+
   const prompt=`You are an expert ATS resume analyzer. Analyze this resume for: "${job}".\nRESUME:\n---\n${resumeText.slice(0,3000)}\n---\nReply ONLY with valid JSON no markdown:\n{"score":<0-100>,"scoreTitle":"<3 words>","scoreVerdict":"<2 sentences>","metrics":[{"label":"ATS Score","value":<0-100>},{"label":"Keyword Match","value":<0-100>},{"label":"Impact Level","value":<0-100>},{"label":"Format Quality","value":<0-100>}],"strengths":["...","...","..."],"weaknesses":["...","...","..."],"keywords":[{"word":"...","match":true},{"word":"...","match":false}],"recommendations":["...","...","...","..."]}`;
+
   try{
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],temperature:0.3,max_tokens:1000})});
-    const data=await res.json();
-    const txt=data.choices[0].message.content.replace(/```json|```/g,'').trim();
-    const r=JSON.parse(txt);
+    const res = await fetch('/api/groq', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.3,
+        max_tokens: 1000
+      })
+    });
+
+    const data = await res.json();
+
+    const txt = data.choices[0].message.content
+      .replace(/```json|```/g,'')
+      .trim();
+
+    const r = JSON.parse(txt);
+
     clearInterval(iv);
     document.getElementById('scanWrap').style.display='none';
+
     await renderResults(r,job,email,name);
+
   }catch(e){
     clearInterval(iv);
     document.getElementById('scanWrap').style.display='none';
@@ -366,8 +391,8 @@ async function analyzeResume(){
     showToast('❌ AI Failed — try again');
     console.error(e);
   }
-}
-
+} 
+  
 async function sendEmailJS(to_email, name, subject, message) {
   // Re-init every time to be safe
   emailjs.init(EMAILJS_PUBLIC);
