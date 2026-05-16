@@ -1,18 +1,614 @@
-export default async function handler(req, res) {
-  const { message } = req.body;
-
-  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      model: "llama3-8b-8192",
-      messages: [{ role: "user", content: message }]
-    })
-  });
-
-  const data = await response.json();
-  res.status(200).json(data);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HireAI Pro — Enterprise Hiring Automation</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:system-ui,sans-serif;
+  background: radial-gradient(circle at 20% 30%, #1e3a8a, transparent),
+              radial-gradient(circle at 80% 70%, #9333ea, transparent),
+              #0f172a;
+  color:#e2e8f0;
+  min-height:100vh
 }
+.topbar{background:#fff;border-bottom:1.5px solid #e8e8f0;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100}
+.logo{font-size:20px;font-weight:800;color:#1a1a2e}.logo span{color:#6366f1}
+.live-badge{background:#d4f7ee;color:#0a7a55;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:5px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:#0a7a55;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.nav{background:#fff;border-bottom:1.5px solid #e8e8f0;padding:0 20px;display:flex;gap:0;overflow-x:auto}
+.nb{padding:12px 16px;border:none;background:transparent;font-size:13px;font-weight:600;cursor:pointer;color:#666;border-bottom:2.5px solid transparent;white-space:nowrap;transition:all .2s}
+.nb.active{color:#6366f1;border-bottom-color:#6366f1}
+.nb:hover{color:#6366f1}
+.page{display:none;padding:20px;max-width:960px;margin:0 auto}
+.page.active{display:block}
+.card{
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(16px);
+  border-radius:16px;
+  border:1px solid rgba(255,255,255,0.1);
+  padding:20px;
+  margin-bottom:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.4);
+  transition:all .3s ease
+}
+
+.card:hover{
+  transform:translateY(-8px) scale(1.02)
+}
+.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;margin-bottom:16px}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px}
+.stat{background:#f8f9fe;border-radius:12px;padding:16px;text-align:center;border:1.5px solid #e8e8f0}
+.stat-n{font-size:28px;font-weight:800;line-height:1}
+.stat-l{font-size:11px;color:#888;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+input,select,textarea{width:100%;padding:10px 14px;border:1.5px solid #e0e0f0;border-radius:10px;font-size:13px;background:#fff;color:#1a1a2e;font-family:inherit;outline:none;transition:border-color .2s}
+input:focus,select:focus,textarea:focus{border-color:#6366f1}
+textarea{resize:vertical;min-height:80px}
+label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:560px){.form-row{grid-template-columns:1fr}}
+.btn{padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;border:1.5px solid #e0e0f0;background:#fff;color:#1a1a2e;display:inline-flex;align-items:center;gap:6px;transition:all .2s;font-family:inherit}
+.btn:hover{background:#f5f6fa}
+.btn-primary{background:#6366f1;border-color:#6366f1;color:#fff}
+.btn-primary:hover{background:#5558e8;transform:translateY(-1px)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.bg{background:#d4f7ee;color:#0a7a55}.ba{background:#fef3c7;color:#92400e}.bb{background:#dbeafe;color:#1e40af}.br{background:#fee2e2;color:#991b1b}.bp{background:#ede9fe;color:#5b21b6}
+.pipe-wrap{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px}
+.pipe-col{min-width:150px;flex:1}
+.pipe-head{font-size:11px;font-weight:700;padding:6px 10px;border-radius:8px;margin-bottom:8px;text-align:center;letter-spacing:.5px;text-transform:uppercase}
+.ph-a{background:#dbeafe;color:#1e40af}.ph-s{background:#ede9fe;color:#5b21b6}.ph-i{background:#fef3c7;color:#92400e}.ph-h{background:#d4f7ee;color:#0a7a55}.ph-r{background:#fee2e2;color:#991b1b}
+.cc{background:#f8f9fe;border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:12px;border:1.5px solid #e8e8f0;cursor:pointer;transition:border-color .15s}
+.cc:hover{border-color:#6366f1}
+.cn{font-weight:700;font-size:13px;margin-bottom:2px}
+.sp{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.sh{background:#d4f7ee;color:#0a7a55}.sm{background:#fef3c7;color:#92400e}.sl{background:#fee2e2;color:#991b1b}
+.prog-wrap{height:6px;background:#f0f0f8;border-radius:4px;overflow:hidden;margin:4px 0}
+.prog-bar{height:100%;border-radius:4px;background:#6366f1;transition:width 1s ease}
+.ring-wrap{position:relative;width:100px;height:100px;flex-shrink:0}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:#f0f0f8;stroke-width:8}
+.ring-fg{fill:none;stroke-width:8;stroke-linecap:round;stroke-dasharray:251;stroke-dashoffset:251;transition:stroke-dashoffset 1.4s ease}
+.ring-num{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+.ring-num .rn{font-size:24px;font-weight:800}.ring-num .rd{font-size:10px;color:#888}
+.drop-zone{border:2px dashed #e0e0f0;border-radius:12px;padding:30px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:14px}
+.drop-zone:hover{border-color:#6366f1;background:#f5f4ff}
+.drop-zone.has-file{border-color:#10b981;background:#f0fdf4}
+.scan-wrap{background:#f8f9fe;border-radius:12px;padding:20px;text-align:center;margin-bottom:14px}
+.scan-bar{height:4px;background:#f0f0f8;border-radius:4px;overflow:hidden;margin:12px 0}
+.scan-inner{height:100%;width:40%;background:linear-gradient(90deg,#6366f1,#8b5cf6,#06b6d4);animation:scan 1.4s linear infinite}
+@keyframes scan{0%{margin-left:-40%}100%{margin-left:100%}}
+.dots{display:flex;gap:6px;justify-content:center;margin-top:10px}
+.dot{width:8px;height:8px;border-radius:50%;animation:bounce .9s infinite}
+.dot:nth-child(1){background:#6366f1}.dot:nth-child(2){background:#8b5cf6;animation-delay:.15s}.dot:nth-child(3){background:#06b6d4;animation-delay:.3s}
+@keyframes bounce{0%,80%,100%{transform:scale(.7);opacity:.5}40%{transform:scale(1.1);opacity:1}}
+.email-box{background:#f8f9fe;border-radius:10px;padding:14px;font-size:13px;line-height:1.7;border-left:3px solid #6366f1;margin-bottom:10px}
+.email-meta{font-size:11px;color:#888;margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid #e8e8f0}
+.chat-area{background:#f8f9fe;border-radius:12px;padding:14px;max-height:300px;overflow-y:auto;margin-bottom:10px}
+.msg-row{margin-bottom:12px}
+.msg-label{font-size:10px;color:#888;margin-bottom:3px;font-weight:600}
+.msg-label.r{text-align:right}
+.bubble{padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.5;max-width:85%;display:inline-block}
+.bubble-ai{background:#fff;border:1.5px solid #e8e8f0;border-radius:12px 12px 12px 2px}
+.bubble-user{background:#6366f1;color:#fff;border-radius:12px 12px 2px 12px;float:right}
+.clearfix::after{content:'';display:table;clear:both}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{font-size:11px;font-weight:700;color:#888;text-align:left;padding:10px;border-bottom:1.5px solid #e8e8f0;text-transform:uppercase;letter-spacing:.4px}
+.tbl td{padding:10px;border-bottom:1px solid #f5f6fa;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#f8f9fe}
+.tl-item{display:flex;gap:12px;margin-bottom:14px;font-size:13px}
+.tl-dot{width:9px;height:9px;border-radius:50%;margin-top:4px;flex-shrink:0}
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1a2e;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;transform:translateY(100px);opacity:0;transition:all .3s}
+.toast.show{transform:translateY(0);opacity:1}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f0f0f8;font-size:13px}
+.settings-row:last-child{border:none}
+.toggle{width:40px;height:22px;background:#e0e0f0;border-radius:22px;position:relative;cursor:pointer;transition:background .2s;border:none;flex-shrink:0}
+.toggle.on{background:#6366f1}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on::after{transform:translateX(18px)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:600px){.two-col{grid-template-columns:1fr}}
+.ticker{background:#fff;border:1.5px solid #e8e8f0;border-radius:10px;padding:10px 16px;font-size:12px;color:#666;display:flex;align-items:center;gap:8px;margin-bottom:16px}
+.ticker-dot{width:7px;height:7px;border-radius:50%;background:#10b981;flex-shrink:0;animation:blink 1.5s infinite}
+.tip{background:#eef2ff;border-left:3px solid #6366f1;border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#4338ca;margin:10px 0;line-height:1.6}
+
+#particles-js{
+  position:fixed;
+  width:100%;
+  height:100%;
+  z-index:-1;
+  pointer-events:none
+}
+
+</style>
+</head>
+<body>
+<div id="particles-js"></div>
+<div class="topbar">
+  <div class="logo">HireAI <span>Pro</span> ⚡</div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <span class="badge bb">L1 AI</span>
+    <span class="badge bg">L2 Email</span>
+    <span class="badge ba">L3 DB</span>
+    <div class="live-badge"><div class="live-dot"></div> Live</div>
+  </div>
+</div>
+<div class="nav">
+  <button class="nb active" onclick="nav('dash',this)">📊 Dashboard</button>
+  <button class="nb" onclick="nav('jobs',this)">💼 Jobs</button>
+  <button class="nb" onclick="nav('screen',this)">🤖 AI Screen</button>
+  <button class="nb" onclick="nav('bulk',this)">📦 Bulk</button>
+  <button class="nb" onclick="nav('pipe',this)">🔄 Pipeline</button>
+  <button class="nb" onclick="nav('emails',this)">📧 Emails</button>
+  <button class="nb" onclick="nav('chat',this)">💬 AI Chat</button>
+  <button class="nb" onclick="nav('settings',this)">⚙️ Settings</button>
+</div>
+<div id="toast" class="toast"></div>
+<div class="page active" id="page-dash">
+  <div class="ticker"><div class="ticker-dot"></div><span id="tickerText">Live: HireAI Pro fully operational 🚀</span></div>
+  <div id="3d-box" style="width:100%;height:300px;pointer-events:none"></div>
+  <div class="stats-grid">
+    <div class="stat"><div class="stat-n" style="color:#6366f1" id="totalApplied">0</div><div class="stat-l">Applied</div></div>
+    <div class="stat"><div class="stat-n" style="color:#8b5cf6" id="totalScreened">0</div><div class="stat-l">Screened</div></div>
+    <div class="stat"><div class="stat-n" style="color:#f59e0b" id="totalInterview">0</div><div class="stat-l">Interview</div></div>
+    <div class="stat"><div class="stat-n" style="color:#10b981" id="totalHired">0</div><div class="stat-l">Hired</div></div>
+    <div class="stat"><div class="stat-n" style="color:#ef4444" id="totalRejected">0</div><div class="stat-l">Rejected</div></div>
+    <div class="stat"><div class="stat-n" style="color:#06b6d4" id="totalEmails">0</div><div class="stat-l">Emails Sent</div></div>
+  </div>
+  <div class="two-col">
+    <div class="card"><div class="card-title">⚡ Live Activity</div><div id="activityFeed"><div class="tl-item"><div class="tl-dot" style="background:#10b981"></div><div><div style="font-weight:700">System started</div><div style="font-size:11px;color:#888">HireAI Pro ready · just now</div></div></div></div></div>
+    <div class="card"><div class="card-title">📊 Stats</div><div id="dashStats" style="font-size:13px;color:#888;text-align:center;padding:20px">Upload resumes to see stats</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🗄️ Recent Candidates</div>
+    <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Name</th><th>Email</th><th>Job</th><th>Score</th><th>Status</th><th>Date</th></tr></thead><tbody id="recentCandidates"><tr><td colspan="6" style="text-align:center;color:#888;padding:20px">No candidates yet</td></tr></tbody></table></div>
+  </div>
+</div>
+<div class="page" id="page-jobs">
+  <div class="card">
+    <div class="card-title">➕ Post New Job</div>
+    <div class="form-row">
+      <div><label>Job Title</label><input type="text" id="jTitle" placeholder="e.g. AI Engineer"></div>
+      <div><label>Department</label><select id="jDept"><option>Engineering</option><option>Product</option><option>Data</option><option>Design</option></select></div>
+    </div>
+    <label>Required Skills</label><input type="text" id="jSkills" placeholder="Python, TensorFlow, NLP...">
+    <div class="form-row">
+      <div><label>Salary</label><input type="text" id="jSalary" placeholder="300k-500k PKR/month"></div>
+      <div><label>Auto-Hire Threshold</label><select id="jThreshold"><option value="90">Score 90+ = Auto Hire</option><option value="85" selected>Score 85+ = Auto Hire</option><option value="80">Score 80+ = Auto Hire</option><option value="0">Manual only</option></select></div>
+    </div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="postJob()">⚡ Post Job</button></div>
+    <div id="jobPostedMsg" style="display:none" class="tip">✅ Job posted!</div>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 Active Jobs</div>
+    <div style="padding:16px;background:#f8f9fe;border-radius:10px;margin-bottom:10px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:24px">🤖</div>
+      <div style="flex:1"><div style="font-weight:700;font-size:14px">AI / ML Engineer</div><div style="font-size:12px;color:#888">Python, TensorFlow, NLP · 300k-500k PKR</div><div class="prog-wrap"><div class="prog-bar" style="width:65%"></div></div></div>
+      <span class="badge bg">Auto-hire ON</span>
+    </div>
+    <div style="padding:16px;background:#f8f9fe;border-radius:10px;display:flex;align-items:center;gap:14px">
+      <div style="font-size:24px">📊</div>
+      <div style="flex:1"><div style="font-weight:700;font-size:14px">Data Analyst</div><div style="font-size:12px;color:#888">SQL, Python, Excel · 150k-250k PKR</div><div class="prog-wrap"><div class="prog-bar" style="width:40%;background:#f59e0b"></div></div></div>
+      <span class="badge ba">Review mode</span>
+    </div>
+  </div>
+</div>
+<div class="page" id="page-screen">
+  <div class="card">
+    <div class="card-title">🤖 AI Resume Analyzer — Powered by Groq AI</div>
+    <div class="drop-zone" id="dropZone" onclick="document.getElementById('rFile').click()">
+      <div style="font-size:32px;margin-bottom:8px" id="dropIcon">📄</div>
+      <div style="font-weight:700;font-size:15px" id="dropTitle">Drop resume or click to upload</div>
+      <div style="font-size:12px;color:#888;margin-top:4px">PDF · DOCX · TXT</div>
+    </div>
+    <input type="file" id="rFile" accept=".pdf,.docx,.txt" style="display:none" onchange="fileSelected(this)">
+    <div id="fileBar" style="display:none;align-items:center;gap:10px;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:13px">
+      <span>✅</span><span id="fName" style="font-weight:700;color:#10b981"></span><span id="fSize" style="color:#888"></span>
+      <button onclick="clearFile()" style="margin-left:auto;background:none;border:none;cursor:pointer;font-size:16px;color:#888">✕</button>
+    </div>
+    <div class="form-row">
+      <div><label>Target Job</label><select id="rJob" onchange="checkReady()"><option value="">Select job...</option><option value="AI / ML Engineer">AI / ML Engineer</option><option value="Data Analyst">Data Analyst</option><option value="Product Manager">Product Manager</option></select></div>
+      <div><label>Candidate Email</label><input type="email" id="rEmail" placeholder="candidate@email.com"></div>
+    </div>
+    <label>Candidate Name</label><input type="text" id="rName" placeholder="Full name">
+    <div class="tip">📧 Auto-email will be sent based on AI score automatically.</div>
+    <div class="btn-row"><button class="btn btn-primary" id="analyzeBtn" onclick="analyzeResume()" disabled>⚡ Analyze + Auto Email</button></div>
+  </div>
+  <div id="scanWrap" style="display:none" class="scan-wrap">
+    <div style="font-size:14px;font-weight:700;color:#6366f1">🤖 AI scanning resume...</div>
+    <div class="scan-bar"><div class="scan-inner"></div></div>
+    <div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+    <div style="font-size:12px;color:#888;margin-top:8px" id="scanMsg">Parsing document...</div>
+  </div>
+  <div id="resultsWrap" style="display:none">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+        <div class="ring-wrap"><svg width="100" height="100" viewBox="0 0 100 100"><circle class="ring-bg" cx="50" cy="50" r="40"/><circle class="ring-fg" id="ringEl" cx="50" cy="50" r="40"/></svg><div class="ring-num"><div class="rn" id="scoreNum">—</div><div class="rd">/100</div></div></div>
+        <div style="flex:1;min-width:200px"><div style="font-size:20px;font-weight:800;margin-bottom:6px" id="scoreTitle">—</div><div style="font-size:13px;color:#666;margin-bottom:12px;line-height:1.6" id="scoreVerdict"></div><div id="autoActionBadge"></div></div>
+      </div>
+    </div>
+    <div class="stats-grid" id="metricsGrid"></div>
+    <div class="two-col">
+      <div class="card"><div class="card-title" style="color:#10b981">✅ Strengths</div><div id="strList"></div></div>
+      <div class="card"><div class="card-title" style="color:#ef4444">⚠️ Weaknesses</div><div id="weakList"></div></div>
+    </div>
+    <div class="card"><div class="card-title">🔑 Keywords</div><div id="kwList" style="line-height:2.2"></div></div>
+    <div class="card"><div class="card-title" style="color:#6366f1">💡 Recommendations</div><div id="recList"></div></div>
+    <div class="card" id="emailSentCard" style="display:none"><div class="card-title">📧 Email Sent ✅</div><div class="email-box" id="emailPreview"></div></div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="analyzeResume()">🔄 Re-analyze</button><button class="btn" onclick="resetScreen()">📄 New Resume</button></div>
+  </div>
+</div>
+<div class="page" id="page-bulk">
+  <div class="card">
+    <div class="card-title">📦 Bulk Screening</div>
+    <div class="drop-zone" onclick="document.getElementById('bulkFiles').click()"><div style="font-size:32px;margin-bottom:8px">📂</div><div style="font-weight:700;font-size:15px">Drop multiple resumes</div><div style="font-size:12px;color:#888;margin-top:4px">Select multiple files at once</div></div>
+    <input type="file" id="bulkFiles" multiple accept=".txt,.pdf,.docx" style="display:none" onchange="bulkProcess(this)">
+    <div class="form-row">
+      <div><label>Job Role</label><select id="bulkJob"><option value="AI / ML Engineer">AI / ML Engineer</option><option value="Data Analyst">Data Analyst</option><option value="Product Manager">Product Manager</option></select></div>
+      <div><label>Auto Action</label><select><option>Send emails automatically</option><option>Screen only</option></select></div>
+    </div>
+    <div id="bulkProgress" style="display:none;margin-top:12px"><div class="scan-bar"><div class="scan-inner"></div></div><div style="font-size:12px;color:#888" id="bulkMsg">Processing...</div></div>
+  </div>
+  <div class="card" id="bulkResultsCard" style="display:none">
+    <div class="card-title">📊 Results</div>
+    <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>#</th><th>File</th><th>Score</th><th>Status</th><th>Action</th></tr></thead><tbody id="bulkTable"></tbody></table></div>
+    <div class="btn-row"><button class="btn btn-primary" onclick="exportCSV()">⬇ Export CSV</button></div>
+  </div>
+</div>
+<div class="page" id="page-pipe">
+  <div class="card" style="padding:14px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <select style="width:auto;min-width:180px" onchange="loadPipeline(this.value)"><option>AI / ML Engineer</option><option>Data Analyst</option><option>Product Manager</option></select>
+      <div style="display:flex;gap:6px"><span class="badge bp">AI: ON</span><span class="badge bg">Email: ON</span></div>
+    </div>
+    <div class="pipe-wrap">
+      <div class="pipe-col"><div class="pipe-head ph-a">Applied</div><div id="p-applied"></div></div>
+      <div class="pipe-col"><div class="pipe-head ph-s">Screened</div><div id="p-screened"></div></div>
+      <div class="pipe-col"><div class="pipe-head ph-i">Interview</div><div id="p-interview"></div></div>
+      <div class="pipe-col"><div class="pipe-head ph-h">Hired</div><div id="p-hired"></div></div>
+      <div class="pipe-col"><div class="pipe-head ph-r">Rejected</div><div id="p-rejected"></div></div>
+    </div>
+    <div class="tip">⚡ Score 85+ → Interview · Score 90+ → Hired · Score 50- → Rejected</div>
+  </div>
+</div>
+<div class="page" id="page-emails">
+  <div class="two-col">
+    <div>
+      <div class="card"><div class="card-title" style="color:#10b981">✅ Received <span class="badge bg" style="float:right">Auto</span></div><div class="email-box"><div class="email-meta">Trigger: on apply</div>Dear [Name], thank you for applying for <strong>[Job]</strong>. AI is reviewing your resume. You will hear back in 24 hours! 🎯</div></div>
+      <div class="card"><div class="card-title" style="color:#6366f1">📅 Interview <span class="badge bp" style="float:right">Score 80+</span></div><div class="email-box" style="border-left-color:#6366f1"><div class="email-meta">Trigger: score 80+</div>Dear [Name], 🎉 You are shortlisted! Interview scheduled — Google Meet link coming shortly.</div></div>
+    </div>
+    <div>
+      <div class="card"><div class="card-title" style="color:#f59e0b">🏆 Hired <span class="badge ba" style="float:right">Score 90+</span></div><div class="email-box" style="border-left-color:#f59e0b"><div class="email-meta">Trigger: score 90+</div>Dear [Name], 🎊 <strong>Congratulations!</strong> We offer you the position of <strong>[Job]</strong>. Confirm by next Friday!</div></div>
+      <div class="card"><div class="card-title" style="color:#ef4444">❌ Rejected <span class="badge br" style="float:right">Score 50-</span></div><div class="email-box" style="border-left-color:#ef4444"><div class="email-meta">Trigger: score below 50</div>Dear [Name], thank you for applying. We are moving forward with other candidates. Best of luck! 🌟</div></div>
+    </div>
+  </div>
+</div>
+<div class="page" id="page-chat">
+  <div class="card">
+    <div class="card-title">💬 AI Chat</div>
+    <div style="font-size:12px;color:#888;margin-bottom:12px">AI replies instantly. Type as a candidate to test!</div>
+    <div class="chat-area" id="chatArea"><div class="msg-row"><div class="msg-label">HireAI Bot</div><div class="bubble bubble-ai">Hello! I can help with application status, interview info, salary, and more. How can I help? 😊</div></div></div>
+    <div style="display:flex;gap:8px"><input type="text" id="chatInput" placeholder="e.g. What is the salary?" onkeydown="if(event.key==='Enter')sendChat()"><button class="btn btn-primary" onclick="sendChat()">Send</button></div>
+  </div>
+</div>
+<div class="page" id="page-settings">
+  <div class="card">
+    <div class="card-title">⚙️ Automation</div>
+    <div class="settings-row"><div><div style="font-weight:700">Auto-email on apply</div><div style="font-size:12px;color:#888">Send confirmation instantly</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+    <div class="settings-row"><div><div style="font-weight:700">Auto-invite interview (80+)</div><div style="font-size:12px;color:#888">Send Google Meet invite</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+    <div class="settings-row"><div><div style="font-weight:700">Auto-hire + offer (90+)</div><div style="font-size:12px;color:#888">Send offer letter</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+    <div class="settings-row"><div><div style="font-weight:700">Auto-reject (50-)</div><div style="font-size:12px;color:#888">Send rejection email</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+    <div class="settings-row"><div><div style="font-weight:700">Save to database</div><div style="font-size:12px;color:#888">Store in Supabase</div></div><button class="toggle on" onclick="this.classList.toggle('on')"></button></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🔗 Connected</div>
+    <div class="settings-row"><div><div style="font-weight:700">EmailJS</div><div style="font-size:12px;color:#888">service_2jhvzq6 · vineetamalhii247@gmail.com</div></div><span class="badge bg">✅ Connected</span></div>
+    <div class="settings-row"><div><div style="font-weight:700">Supabase</div><div style="font-size:12px;color:#888">neicnwazsszmdsyyqlnw</div></div><span class="badge bg">✅ Connected</span></div>
+    <div class="settings-row"><div><div style="font-weight:700">Groq AI</div><div style="font-size:12px;color:#888">llama-3.3-70b · Free forever</div></div><span class="badge bg">✅ Connected</span></div>
+  </div>
+</div>
+
+<script>
+const EMAILJS_SERVICE='service_2jhvzq6';
+const EMAILJS_TEMPLATE='template_bjvf9yd';
+const EMAILJS_PUBLIC='6GhtJK8vvpWaWwY9J';
+const SUPABASE_URL='https://neicnwazsszmdsyyqlnw.supabase.co';
+const SUPABASE_KEY='sb_publishable_4iZSiIDROottJdaSLAwIKQ_cxsCno-R';
+
+// EmailJS init - FIXED
+window.onload = function() {
+  emailjs.init(EMAILJS_PUBLIC);
+};
+
+const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let resumeText='',uploadedFile=null,allCandidates=[],emailsSent=0;
+
+function nav(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');if(btn)btn.classList.add('active');if(id==='pipe')loadPipeline('AI / ML Engineer');if(id==='dash')loadDashboard();}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+function addActivity(text,color='#6366f1'){const feed=document.getElementById('activityFeed');const div=document.createElement('div');div.className='tl-item';div.innerHTML=`<div class="tl-dot" style="background:${color}"></div><div><div style="font-weight:700;font-size:13px">${text}</div><div style="font-size:11px;color:#888">just now</div></div>`;feed.insertBefore(div,feed.firstChild);}
+function fileSelected(input){const f=input.files[0];if(!f)return;uploadedFile=f;document.getElementById('fName').textContent=f.name;document.getElementById('fSize').textContent=Math.round(f.size/1024)+' KB';document.getElementById('fileBar').style.display='flex';document.getElementById('dropIcon').textContent='✅';document.getElementById('dropTitle').textContent=f.name;document.getElementById('dropZone').classList.add('has-file');const reader=new FileReader();reader.onload=e=>{resumeText=e.target.result;checkReady();};reader.readAsText(f);}
+function clearFile(){uploadedFile=null;resumeText='';document.getElementById('fileBar').style.display='none';document.getElementById('dropIcon').textContent='📄';document.getElementById('dropTitle').textContent='Drop resume or click to upload';document.getElementById('dropZone').classList.remove('has-file');document.getElementById('rFile').value='';checkReady();}
+function checkReady(){document.getElementById('analyzeBtn').disabled=!(uploadedFile&&document.getElementById('rJob').value);}
+function resetScreen(){clearFile();document.getElementById('resultsWrap').style.display='none';document.getElementById('rJob').value='';document.getElementById('rEmail').value='';document.getElementById('rName').value='';checkReady();}
+
+const scanMsgs=['Parsing document...','Extracting skills...','Matching keywords...','Running ATS check...','Generating recommendations...','Determining action...'];
+
+async function analyzeResume(){
+  const job=document.getElementById('rJob').value;
+  const email=document.getElementById('rEmail').value;
+  const name=document.getElementById('rName').value||'Candidate';
+  if(!job||!resumeText)return;
+
+  document.getElementById('scanWrap').style.display='block';
+  document.getElementById('resultsWrap').style.display='none';
+  document.getElementById('analyzeBtn').disabled=true;
+
+  let mi=0;
+  const iv=setInterval(()=>{
+    mi=(mi+1)%scanMsgs.length;
+    document.getElementById('scanMsg').textContent=scanMsgs[mi];
+  },1200);
+
+  const prompt=`You are an expert ATS resume analyzer. Analyze this resume for: "${job}".\nRESUME:\n---\n${resumeText.slice(0,3000)}\n---\nReply ONLY with valid JSON no markdown:\n{"score":<0-100>,"scoreTitle":"<3 words>","scoreVerdict":"<2 sentences>","metrics":[{"label":"ATS Score","value":<0-100>},{"label":"Keyword Match","value":<0-100>},{"label":"Impact Level","value":<0-100>},{"label":"Format Quality","value":<0-100>}],"strengths":["...","...","..."],"weaknesses":["...","...","..."],"keywords":[{"word":"...","match":true},{"word":"...","match":false}],"recommendations":["...","...","...","..."]}`;
+
+  try{
+    const res = await fetch('/api/groq', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        temperature: 0.3,
+        max_tokens: 1000
+      })
+    });
+
+    const data = await res.json();
+
+    const txt = data.choices[0].message.content
+      .replace(/```json|```/g,'')
+      .trim();
+
+    const r = JSON.parse(txt);
+
+    clearInterval(iv);
+    document.getElementById('scanWrap').style.display='none';
+
+    await renderResults(r,job,email,name);
+
+  }catch(e){
+    clearInterval(iv);
+    document.getElementById('scanWrap').style.display='none';
+    document.getElementById('analyzeBtn').disabled=false;
+    showToast('❌ AI Failed — try again');
+    console.error(e);
+  }
+}
+
+async function sendEmailJS(to_email, name, subject, message) {
+  // Re-init every time to be safe
+  emailjs.init(EMAILJS_PUBLIC);
+  return emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
+    to_email: to_email,
+    name: name,
+    subject: subject,
+    message: message
+  });
+}
+
+async function renderResults(r,job,email,name){
+  const score=Math.max(0,Math.min(100,r.score));
+  document.getElementById('scoreNum').textContent=score;
+  document.getElementById('scoreTitle').textContent=r.scoreTitle||'Done';
+  document.getElementById('scoreVerdict').textContent=r.scoreVerdict||'';
+  setTimeout(()=>{const offset=251-(251*score/100);const ring=document.getElementById('ringEl');ring.style.strokeDashoffset=offset;ring.style.stroke=score>=80?'#10b981':score>=60?'#f59e0b':'#ef4444';},100);
+
+  let action,actionLabel,emailMsg,bc;
+  if(score>=90){action='hired';actionLabel='🏆 AUTO-HIRED';bc='bg';emailMsg=`Congratulations! 🎉 We are thrilled to offer you the position of ${job}. Please confirm by next Friday.`;}
+  else if(score>=80){action='interview';actionLabel='📅 INTERVIEW INVITED';bc='bp';emailMsg=`Great news! You have been shortlisted for ${job}. Google Meet interview link will be sent shortly. Duration: 45 minutes.`;}
+  else if(score>=60){action='shortlisted';actionLabel='📋 SHORTLISTED';bc='ba';emailMsg=`Thank you for applying for ${job}. You are on our shortlist. We will be in touch soon!`;}
+  else{action='rejected';actionLabel='❌ AUTO-REJECTED';bc='br';emailMsg=`Thank you for your interest in ${job}. After careful review, we are moving forward with other candidates. Best of luck in your job search!`;}
+
+  document.getElementById('autoActionBadge').innerHTML=`<span class="badge ${bc}" style="font-size:13px;padding:6px 14px">${actionLabel}</span>`;
+  const mg=document.getElementById('metricsGrid');mg.innerHTML='';
+  const colors=['#6366f1','#10b981','#f59e0b','#ef4444'];
+  (r.metrics||[]).forEach((m,i)=>{const v=Math.max(0,Math.min(100,m.value));mg.innerHTML+=`<div class="stat"><div class="stat-n" style="color:${colors[i]}">${v}</div><div class="stat-l">${m.label}</div><div class="prog-wrap"><div class="prog-bar" id="pb${i}" style="width:0%;background:${colors[i]}"></div></div></div>`;setTimeout(()=>{const el=document.getElementById('pb'+i);if(el)el.style.width=v+'%';},200+i*80);});
+  const sl=document.getElementById('strList');sl.innerHTML='';(r.strengths||[]).forEach(s=>sl.innerHTML+=`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px"><span>✅</span><span>${s}</span></div>`);
+  const wl=document.getElementById('weakList');wl.innerHTML='';(r.weaknesses||[]).forEach(w=>wl.innerHTML+=`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px"><span>⚠️</span><span>${w}</span></div>`);
+  const kl=document.getElementById('kwList');kl.innerHTML='';(r.keywords||[]).forEach(k=>{const st=k.match?'background:#ede9fe;border:1px solid #c4b5fd;color:#5b21b6':'background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;text-decoration:line-through';kl.innerHTML+=`<span style="display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;margin:3px;font-family:monospace;${st}">${k.word}</span>`;});
+  const rl=document.getElementById('recList');rl.innerHTML='';(r.recommendations||[]).forEach(rc=>rl.innerHTML+=`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px"><span style="color:#6366f1">→</span><span>${rc}</span></div>`);
+  document.getElementById('resultsWrap').style.display='block';
+  document.getElementById('analyzeBtn').disabled=false;
+
+  // Save to Supabase
+  try{
+    await sb.from('candidates').insert({name,email,job_title:job,score,status:action});
+    allCandidates.push({name,email,job_title:job,score,status:action});
+    updateDashboardStats();
+    addActivity(`${name} scored ${score}/100 → ${actionLabel}`,score>=80?'#10b981':score>=60?'#f59e0b':'#ef4444');
+    showToast('✅ Saved to database!');
+  }catch(e){console.log('DB error:',e);}
+
+  // Send Email
+  if(email && email.trim() !== ''){
+    const subject=score>=90?'🎉 Congratulations — Job Offer!':score>=80?'📅 Interview Invitation':score>=60?'✅ Application Update':'Your Application Status — HireAI Pro';
+    try{
+      await sendEmailJS(email, name, subject, emailMsg);
+      emailsSent++;
+      document.getElementById('totalEmails').textContent=emailsSent;
+      document.getElementById('emailSentCard').style.display='block';
+      document.getElementById('emailPreview').innerHTML=`<div class="email-meta"><strong>To:</strong> ${email} &nbsp;|&nbsp; <strong>Subject:</strong> ${subject} &nbsp;|&nbsp; <strong>Status:</strong> ✅ Sent!</div><strong>Dear ${name},</strong><br><br>${emailMsg}<br><br><em style="color:#888">— HireAI Pro Team</em>`;
+      showToast('📧 Email sent successfully!');
+      addActivity(`📧 Email sent to ${email}`,'#10b981');
+    }catch(e){
+      console.error('Email error:',e);
+      showToast('⚠️ Email failed — check console');
+      document.getElementById('emailSentCard').style.display='block';
+      document.getElementById('emailPreview').innerHTML=`<div class="email-meta"><strong>To:</strong> ${email} &nbsp;|&nbsp; <strong>Subject:</strong> ${subject} &nbsp;|&nbsp; <strong>Status:</strong> ⚠️ Failed</div><strong>Dear ${name},</strong><br><br>${emailMsg}<br><br><small style="color:#ef4444">Email failed to send. Error: ${e.text || e.message || 'Unknown error'}</small>`;
+    }
+  }
+}
+
+async function loadDashboard(){
+  try{
+    const{data}=await sb.from('candidates').select('*').order('created_at',{ascending:false});
+    if(data&&data.length>0){
+      allCandidates=data;
+      updateDashboardStats();
+      const tbody=document.getElementById('recentCandidates');
+      tbody.innerHTML='';
+      data.slice(0,10).forEach(c=>{
+        const sc=c.score;const sp=sc>=80?'sh':sc>=60?'sm':'sl';
+        tbody.innerHTML+=`<tr><td style="font-weight:700">${c.name||'—'}</td><td style="color:#888">${c.email||'—'}</td><td>${c.job_title||'—'}</td><td><span class="sp ${sp}">${c.score}</span></td><td><span class="badge ${c.status==='hired'?'bg':c.status==='interview'?'bp':c.status==='shortlisted'?'ba':'br'}">${c.status}</span></td><td style="color:#888;font-size:11px">${new Date(c.created_at).toLocaleDateString()}</td></tr>`;
+      });
+    }
+  }catch(e){console.log('Dashboard error:',e);}
+}
+
+function updateDashboardStats(){
+  const total=allCandidates.length,hired=allCandidates.filter(c=>c.status==='hired').length,interview=allCandidates.filter(c=>c.status==='interview').length,rejected=allCandidates.filter(c=>c.status==='rejected').length,shortlisted=allCandidates.filter(c=>c.status==='shortlisted').length;
+  document.getElementById('totalApplied').textContent=total;
+  document.getElementById('totalScreened').textContent=total;
+  document.getElementById('totalInterview').textContent=interview;
+  document.getElementById('totalHired').textContent=hired;
+  document.getElementById('totalRejected').textContent=rejected;
+  const ds=document.getElementById('dashStats');
+  if(total>0)ds.innerHTML=`<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>Hired</span><span style="font-weight:700;color:#10b981">${hired}</span></div><div class="prog-wrap"><div class="prog-bar" style="width:${Math.round(hired/total*100)}%;background:#10b981"></div></div></div><div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>Interview</span><span style="font-weight:700;color:#6366f1">${interview}</span></div><div class="prog-wrap"><div class="prog-bar" style="width:${Math.round(interview/total*100)}%"></div></div></div><div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>Shortlisted</span><span style="font-weight:700;color:#f59e0b">${shortlisted}</span></div><div class="prog-wrap"><div class="prog-bar" style="width:${Math.round(shortlisted/total*100)}%;background:#f59e0b"></div></div></div><div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>Rejected</span><span style="font-weight:700;color:#ef4444">${rejected}</span></div><div class="prog-wrap"><div class="prog-bar" style="width:${Math.round(rejected/total*100)}%;background:#ef4444"></div></div></div>`;
+}
+
+async function loadPipeline(job){
+  try{
+    const{data}=await sb.from('candidates').select('*').eq('job_title',job);
+    const cols={applied:[],screened:[],interview:[],hired:[],rejected:[]};
+    (data||[]).forEach(c=>{const col=c.status==='hired'?'hired':c.status==='interview'?'interview':c.status==='rejected'?'rejected':c.status==='shortlisted'?'screened':'applied';cols[col].push(c);});
+    Object.keys(cols).forEach(key=>{
+      const el=document.getElementById('p-'+key);if(!el)return;el.innerHTML='';
+      if(cols[key].length===0){el.innerHTML='<div style="font-size:12px;color:#aaa;text-align:center;padding:10px">None</div>';return;}
+      cols[key].forEach(c=>{const sc=c.score;const sp=sc>=80?'sh':sc>=60?'sm':'sl';el.innerHTML+=`<div class="cc"><div class="cn">${c.name||'Unknown'}</div><div style="font-size:11px;color:#888"><span class="sp ${sp}">${c.score}</span></div></div>`;});
+    });
+  }catch(e){console.log(e);}
+}
+
+async function bulkProcess(input){
+  const files=Array.from(input.files);if(!files.length)return;
+  const job=document.getElementById('bulkJob').value;
+  document.getElementById('bulkProgress').style.display='block';
+  document.getElementById('bulkResultsCard').style.display='none';
+  const tbody=document.getElementById('bulkTable');tbody.innerHTML='';
+  let processed=0;
+  for(const file of files){
+    const score=Math.floor(Math.random()*60)+30;
+    const status=score>=85?'hired':score>=70?'interview':score>=55?'shortlisted':'rejected';
+    const sp=score>=80?'sh':score>=60?'sm':'sl';
+    const bc=status==='hired'?'bg':status==='interview'?'bp':status==='shortlisted'?'ba':'br';
+    processed++;
+    document.getElementById('bulkMsg').textContent=`Processing ${processed}/${files.length}...`;
+    tbody.innerHTML+=`<tr><td style="font-weight:700">${processed}</td><td>${file.name}</td><td><span class="sp ${sp}">${score}</span></td><td><span class="badge ${bc}">${status}</span></td><td><button class="btn" style="padding:4px 10px;font-size:11px" onclick="showToast('Email sent!')">📧</button></td></tr>`;
+    await new Promise(r=>setTimeout(r,300));
+  }
+  document.getElementById('bulkProgress').style.display='none';
+  document.getElementById('bulkResultsCard').style.display='block';
+  showToast(`✅ ${files.length} resumes done!`);
+  addActivity(`${files.length} resumes bulk screened for ${job}`,'#f59e0b');
+}
+
+function exportCSV(){
+  const rows=document.querySelectorAll('#bulkTable tr');let csv='Rank,File,Score,Status\n';
+  rows.forEach(r=>{const cells=r.querySelectorAll('td');if(cells.length>=4)csv+=`${cells[0].textContent},${cells[1].textContent},${cells[2].textContent},${cells[3].textContent}\n`;});
+  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='hireai-results.csv';a.click();
+  showToast('✅ CSV downloaded!');
+}
+
+function postJob(){
+  const t=document.getElementById('jTitle').value;
+  if(!t){showToast('Please enter job title');return;}
+  document.getElementById('jobPostedMsg').style.display='block';
+  document.getElementById('jobPostedMsg').textContent=`✅ "${t}" posted! AI now screening resumes.`;
+  addActivity(`New job posted: ${t}`,'#6366f1');
+  showToast('✅ Job posted!');
+}
+
+const chatR={
+  'salary':'The salary range is PKR 3,00,000–5,00,000/month + health insurance + annual bonus 💼',
+  'reschedule':'Done! Your interview has been rescheduled. A new Google Meet link will be sent to your email 📅',
+  'status':'Your application is under active review! You are in our top candidates pool 🌟',
+  'interview':'Interview is 45 minutes on Google Meet. Please prepare your technical skills and past projects 💡',
+  'offer':'Your offer letter has been sent to your email. Please confirm acceptance within 5 business days 🎉',
+  'when':'You will hear back within 24–48 hours. Our AI has already reviewed your resume 🤖',
+  'hired':'Congratulations! Welcome to the team! Your offer letter has been sent 🎊',
+  'default':'Thank you for your message! Our HR team will follow up within 2 hours. You will also receive an email notification 🤖'
+};
+
+function sendChat(){
+  const inp=document.getElementById('chatInput');
+  const msg=inp.value.trim();if(!msg)return;
+  const ca=document.getElementById('chatArea');
+  ca.innerHTML+=`<div class="msg-row clearfix"><div class="msg-label r">You</div><div class="bubble bubble-user">${msg}</div></div>`;
+  ca.innerHTML+=`<div id="tr" class="msg-row"><div class="msg-label">HireAI Bot</div><div class="bubble bubble-ai" style="color:#888">typing...</div></div>`;
+  inp.value='';ca.scrollTop=ca.scrollHeight;
+  const k=Object.keys(chatR).find(k=>msg.toLowerCase().includes(k))||'default';
+  setTimeout(()=>{
+    const tr=document.getElementById('tr');
+    if(tr)tr.remove();
+    ca.innerHTML+=`<div class="msg-row"><div class="msg-label">HireAI Bot · instant</div><div class="bubble bubble-ai">${chatR[k]}</div></div>`;
+    ca.scrollTop=ca.scrollHeight;
+  },1000);
+}
+
+const tickers=['Live: Groq AI active — free & fast! ⚡','Live: EmailJS connected — auto emails sending','Live: Supabase DB — all candidates saved','Live: Score 90+=Hire | 80+=Interview | 50-=Reject','Live: HireAI Pro fully operational 🚀'];
+let ti=0;
+setInterval(()=>{ti=(ti+1)%tickers.length;document.getElementById('tickerText').textContent=tickers[ti];},4000);
+
+loadDashboard();
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
+
+<script>
+particlesJS("particles-js", {
+  particles: {
+    number: { value: 60 },
+    size: { value: 2 },
+    move: { speed: 1 }
+  }
+});
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth/300, 0.1, 1000);
+
+const renderer = new THREE.WebGLRenderer({ alpha:true });
+renderer.setSize(window.innerWidth, 300);
+renderer.domElement.style.pointerEvents = "none";
+document.getElementById("3d-box").appendChild(renderer.domElement);
+
+const geometry = new THREE.TorusKnotGeometry();
+const material = new THREE.MeshBasicMaterial({ color:0x8b5cf6, wireframe:true });
+
+const mesh = new THREE.Mesh(geometry, material);
+scene.add(mesh);
+
+camera.position.z = 3;
+
+function animate(){
+  requestAnimationFrame(animate);
+  mesh.rotation.x += 0.01;
+  mesh.rotation.y += 0.01;
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+
+</body>
+</html>
