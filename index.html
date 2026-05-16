@@ -536,17 +536,6 @@ function postJob(){
   showToast('✅ Job posted!');
 }
 
-const chatR={
-  'salary':'The salary range is PKR 3,00,000–5,00,000/month + health insurance + annual bonus 💼',
-  'reschedule':'Done! Your interview has been rescheduled. A new Google Meet link will be sent to your email 📅',
-  'status':'Your application is under active review! You are in our top candidates pool 🌟',
-  'interview':'Interview is 45 minutes on Google Meet. Please prepare your technical skills and past projects 💡',
-  'offer':'Your offer letter has been sent to your email. Please confirm acceptance within 5 business days 🎉',
-  'when':'You will hear back within 24–48 hours. Our AI has already reviewed your resume 🤖',
-  'hired':'Congratulations! Welcome to the team! Your offer letter has been sent 🎊',
-  'default':'Thank you for your message! Our HR team will follow up within 2 hours. You will also receive an email notification 🤖'
-};
-
 let messageCount = 0;
 const MESSAGE_LIMIT = 10;
 let lastMessageTime = 0;
@@ -557,76 +546,83 @@ async function sendChat(){
   const msg = inp.value.trim();
   if(!msg) return;
 
-  // LIMIT CHECK
-  if(messageCount >= MESSAGE_LIMIT){
-    alert("⚠️ Message limit reached (10)");
-    return;
-  }
-
-  // COOLDOWN CHECK
   const now = Date.now();
-  if(now - lastMessageTime < COOLDOWN){
-    alert("⏳ Wait 3 seconds...");
+
+  // ⏳ Cooldown check
+  if (now - lastMessageTime < COOLDOWN) {
+    showToast("⏳ Wait 3 seconds between messages");
     return;
   }
 
-  messageCount++;
+  // 🚫 Limit check
+  if (messageCount >= MESSAGE_LIMIT) {
+    showToast("🚫 Message limit reached (10)");
+    return;
+  }
+
+  // ✅ update counters
   lastMessageTime = now;
+  messageCount++;
 
   const ca = document.getElementById('chatArea');
 
-  // USER MESSAGE
+  // user message
   ca.innerHTML += `
   <div class="msg-row clearfix">
     <div class="msg-label r">You</div>
     <div class="bubble bubble-user">${msg}</div>
   </div>`;
 
-  // AI typing
+  // typing animation
   ca.innerHTML += `
   <div id="tr" class="msg-row">
     <div class="msg-label">HireAI Bot</div>
     <div class="bubble bubble-ai" style="color:#888">typing...</div>
   </div>`;
 
-  inp.value='';
+  inp.value = '';
   ca.scrollTop = ca.scrollHeight;
 
-  try{
-    const res = await fetch('/api/groq',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+  try {
+    const res = await fetch('/api/groq', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model:'llama-3.3-70b-versatile',
-        messages:[{ role:'user', content: msg }]
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'You are HireAI Pro assistant. Answer like HR. Be short, professional, helpful.' 
+          },
+          { role: 'user', content: msg }
+        ]
       })
     });
 
     const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || "No response";
+    const reply = data.choices?.[0]?.message?.content || "AI error";
 
-    const tr = document.getElementById('tr');
-    if(tr) tr.remove();
+    document.getElementById('tr')?.remove();
 
     ca.innerHTML += `
     <div class="msg-row">
-      <div class="msg-label">HireAI Bot · AI</div>
+      <div class="msg-label">HireAI Bot</div>
       <div class="bubble bubble-ai">${reply}</div>
     </div>`;
 
-    ca.scrollTop = ca.scrollHeight;
-
-  }catch(e){
-    const tr = document.getElementById('tr');
-    if(tr) tr.remove();
+  } catch (e) {
+    document.getElementById('tr')?.remove();
 
     ca.innerHTML += `
     <div class="msg-row">
-      <div class="bubble bubble-ai" style="color:red">❌ Error connecting AI</div>
+      <div class="msg-label">HireAI Bot</div>
+      <div class="bubble bubble-ai">❌ AI failed</div>
     </div>`;
   }
-}
 
+  ca.scrollTop = ca.scrollHeight;
+}
+  
 const tickers=['Live: Groq AI active — free & fast! ⚡','Live: EmailJS connected — auto emails sending','Live: Supabase DB — all candidates saved','Live: Score 90+=Hire | 80+=Interview | 50-=Reject','Live: HireAI Pro fully operational 🚀'];
 let ti=0;
 setInterval(()=>{ti=(ti+1)%tickers.length;document.getElementById('tickerText').textContent=tickers[ti];},4000);
