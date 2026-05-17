@@ -6,6 +6,8 @@
 <title>HireAI Pro — Enterprise Hiring Automation</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.26/mammoth.browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{
@@ -16,6 +18,71 @@ body{
   color:#e2e8f0;
   min-height:100vh
 }
+
+/* ======== LOGIN PAGE ======== */
+#loginPage{
+  position:fixed;
+  inset:0;
+  background: radial-gradient(circle at 20% 30%, #1e3a8a, transparent),
+              radial-gradient(circle at 80% 70%, #9333ea, transparent),
+              #0f172a;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index:9999;
+}
+.login-box{
+  background:rgba(255,255,255,0.07);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(255,255,255,0.15);
+  border-radius:20px;
+  padding:40px 36px;
+  width:360px;
+  text-align:center;
+  box-shadow:0 30px 80px rgba(0,0,0,0.5);
+}
+.login-logo{font-size:26px;font-weight:900;color:#fff;margin-bottom:6px}
+.login-logo span{color:#818cf8}
+.login-sub{font-size:13px;color:#94a3b8;margin-bottom:28px}
+.login-tabs{display:flex;background:rgba(255,255,255,0.08);border-radius:10px;padding:4px;margin-bottom:22px}
+.ltab{flex:1;padding:8px;border:none;background:transparent;color:#94a3b8;font-size:13px;font-weight:600;cursor:pointer;border-radius:7px;transition:all .2s}
+.ltab.active{background:#6366f1;color:#fff}
+.login-input{
+  width:100%;
+  padding:11px 14px;
+  border:1.5px solid rgba(255,255,255,0.15);
+  border-radius:10px;
+  font-size:13px;
+  background:rgba(255,255,255,0.08);
+  color:#fff;
+  font-family:inherit;
+  outline:none;
+  margin-bottom:12px;
+  transition:border-color .2s
+}
+.login-input::placeholder{color:#64748b}
+.login-input:focus{border-color:#6366f1}
+.login-btn{
+  width:100%;
+  padding:12px;
+  background:#6366f1;
+  border:none;
+  border-radius:10px;
+  color:#fff;
+  font-size:14px;
+  font-weight:700;
+  cursor:pointer;
+  transition:all .2s;
+  margin-top:4px;
+  font-family:inherit
+}
+.login-btn:hover{background:#5558e8;transform:translateY(-1px)}
+.login-err{font-size:12px;color:#f87171;margin-top:10px;min-height:18px}
+.login-ok{font-size:12px;color:#34d399;margin-top:10px;min-height:18px}
+
+/* ======== MAIN APP ======== */
+#app{display:none}
+
 .topbar{background:#fff;border-bottom:1.5px solid #e8e8f0;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;position:sticky;top:0;z-index:100}
 .logo{font-size:20px;font-weight:800;color:#1a1a2e}.logo span{color:#6366f1}
 .live-badge{background:#d4f7ee;color:#0a7a55;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:flex;align-items:center;gap:5px}
@@ -37,10 +104,7 @@ body{
   box-shadow:0 20px 60px rgba(0,0,0,0.4);
   transition:all .3s ease
 }
-
-.card:hover{
-  transform:translateY(-8px) scale(1.02)
-}
+.card:hover{transform:translateY(-8px) scale(1.02)}
 .card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#888;margin-bottom:16px}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:16px}
 .stat{background:#f8f9fe;border-radius:12px;padding:16px;text-align:center;border:1.5px solid #e8e8f0}
@@ -104,7 +168,7 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
 .tbl tr:hover td{background:#f8f9fe}
 .tl-item{display:flex;gap:12px;margin-bottom:14px;font-size:13px}
 .tl-dot{width:9px;height:9px;border-radius:50%;margin-top:4px;flex-shrink:0}
-.toast{position:fixed;bottom:24px;right:24px;background:#1a1a2e;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:999;transform:translateY(100px);opacity:0;transition:all .3s}
+.toast{position:fixed;bottom:24px;right:24px;background:#1a1a2e;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;z-index:9999;transform:translateY(100px);opacity:0;transition:all .3s}
 .toast.show{transform:translateY(0);opacity:1}
 .settings-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f0f0f8;font-size:13px}
 .settings-row:last-child{border:none}
@@ -117,41 +181,53 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
 .ticker{background:#fff;border:1.5px solid #e8e8f0;border-radius:10px;padding:10px 16px;font-size:12px;color:#666;display:flex;align-items:center;gap:8px;margin-bottom:16px}
 .ticker-dot{width:7px;height:7px;border-radius:50%;background:#10b981;flex-shrink:0;animation:blink 1.5s infinite}
 .tip{background:#eef2ff;border-left:3px solid #6366f1;border-radius:0 8px 8px 0;padding:10px 14px;font-size:12px;color:#4338ca;margin:10px 0;line-height:1.6}
-
-#particles-js{
-  position:fixed;
-  width:100%;
-  height:100%;
-  z-index:-1;
-  pointer-events:none
-}
-
+#particles-js{position:fixed;width:100%;height:100%;z-index:-1;pointer-events:none}
 </style>
-  <!-- PDF.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-
-<!-- Mammoth (DOCX reader) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.26/mammoth.browser.min.js"></script>
 </head>
 <body>
+
 <div id="particles-js"></div>
-<div class="topbar">
-  <div id="authBox" style="position:fixed;top:20px;right:20px;background:#fff;padding:16px;border-radius:12px;z-index:999">
-  <input type="email" id="authEmail" placeholder="Email" style="margin-bottom:8px">
-  <input type="password" id="authPass" placeholder="Password" style="margin-bottom:8px">
-  
-  <button onclick="signUp()" class="btn btn-primary">Sign Up</button>
-  <button onclick="login()" class="btn">Login</button>
-  <button onclick="logout()" class="btn" style="display:none" id="logoutBtn">Logout</button>
+<div id="toast" class="toast"></div>
+
+<!-- ======================================================
+     LOGIN PAGE — shows first, hides when logged in
+     ====================================================== -->
+<div id="loginPage">
+  <div class="login-box">
+    <div class="login-logo">HireAI <span>Pro</span> ⚡</div>
+    <div class="login-sub">Enterprise Hiring Automation</div>
+
+    <div class="login-tabs">
+      <button class="ltab active" id="tabLogin" onclick="switchTab('login')">Login</button>
+      <button class="ltab" id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+
+    <input class="login-input" type="email" id="authEmail" placeholder="Email address">
+    <input class="login-input" type="password" id="authPass" placeholder="Password">
+
+    <button class="login-btn" id="authBtn" onclick="authAction()">🔐 Login</button>
+
+    <div id="authMsg" class="login-err"></div>
+  </div>
 </div>
+
+<!-- ======================================================
+     MAIN APP — hidden until login
+     ====================================================== -->
+<div id="app">
+
+<div class="topbar">
   <div class="logo">HireAI <span>Pro</span> ⚡</div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <span style="font-size:12px;color:#666" id="userInfo"></span>
     <span class="badge bb">L1 AI</span>
     <span class="badge bg">L2 Email</span>
     <span class="badge ba">L3 DB</span>
     <div class="live-badge"><div class="live-dot"></div> Live</div>
+    <button class="btn" style="padding:6px 12px;font-size:12px" onclick="logout()">🚪 Logout</button>
   </div>
 </div>
+
 <div class="nav">
   <button class="nb active" onclick="nav('dash',this)">📊 Dashboard</button>
   <button class="nb" onclick="nav('jobs',this)">💼 Jobs</button>
@@ -162,7 +238,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
   <button class="nb" onclick="nav('chat',this)">💬 AI Chat</button>
   <button class="nb" onclick="nav('settings',this)">⚙️ Settings</button>
 </div>
-<div id="toast" class="toast"></div>
+
+<!-- DASHBOARD -->
 <div class="page active" id="page-dash">
   <div class="ticker"><div class="ticker-dot"></div><span id="tickerText">Live: HireAI Pro fully operational 🚀</span></div>
   <div id="3d-box" style="width:100%;height:300px;pointer-events:none"></div>
@@ -183,6 +260,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <div style="overflow-x:auto"><table class="tbl"><thead><tr><th>Name</th><th>Email</th><th>Job</th><th>Score</th><th>Status</th><th>Date</th></tr></thead><tbody id="recentCandidates"><tr><td colspan="6" style="text-align:center;color:#888;padding:20px">No candidates yet</td></tr></tbody></table></div>
   </div>
 </div>
+
+<!-- JOBS -->
 <div class="page" id="page-jobs">
   <div class="card">
     <div class="card-title">➕ Post New Job</div>
@@ -212,6 +291,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     </div>
   </div>
 </div>
+
+<!-- AI SCREEN -->
 <div class="page" id="page-screen">
   <div class="card">
     <div class="card-title">🤖 AI Resume Analyzer — Powered by Groq AI</div>
@@ -257,6 +338,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <div class="btn-row"><button class="btn btn-primary" onclick="analyzeResume()">🔄 Re-analyze</button><button class="btn" onclick="resetScreen()">📄 New Resume</button></div>
   </div>
 </div>
+
+<!-- BULK -->
 <div class="page" id="page-bulk">
   <div class="card">
     <div class="card-title">📦 Bulk Screening</div>
@@ -274,6 +357,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <div class="btn-row"><button class="btn btn-primary" onclick="exportCSV()">⬇ Export CSV</button></div>
   </div>
 </div>
+
+<!-- PIPELINE -->
 <div class="page" id="page-pipe">
   <div class="card" style="padding:14px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
@@ -290,6 +375,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <div class="tip">⚡ Score 85+ → Interview · Score 90+ → Hired · Score 50- → Rejected</div>
   </div>
 </div>
+
+<!-- EMAILS -->
 <div class="page" id="page-emails">
   <div class="two-col">
     <div>
@@ -302,6 +389,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     </div>
   </div>
 </div>
+
+<!-- AI CHAT -->
 <div class="page" id="page-chat">
   <div class="card">
     <div class="card-title">💬 AI Chat</div>
@@ -310,6 +399,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
     <div style="display:flex;gap:8px"><input type="text" id="chatInput" placeholder="e.g. What is the salary?" onkeydown="if(event.key==='Enter')sendChat()"><button class="btn btn-primary" onclick="sendChat()">Send</button></div>
   </div>
 </div>
+
+<!-- SETTINGS -->
 <div class="page" id="page-settings">
   <div class="card">
     <div class="card-title">⚙️ Automation</div>
@@ -327,6 +418,8 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
   </div>
 </div>
 
+</div><!-- end #app -->
+
 <script>
 const EMAILJS_SERVICE='service_2jhvzq6';
 const EMAILJS_TEMPLATE='template_bjvf9yd';
@@ -334,129 +427,150 @@ const EMAILJS_PUBLIC='6GhtJK8vvpWaWwY9J';
 const SUPABASE_URL='https://neicnwazsszmdsyyqlnw.supabase.co';
 const SUPABASE_KEY='sb_publishable_4iZSiIDROottJdaSLAwIKQ_cxsCno-R';
 
-// EmailJS init - FIXED
-window.onload = async function() {
-  emailjs.init(EMAILJS_PUBLIC);
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-  const { data: { session } } = await sb.auth.getSession();
-
-  if (session) {
-    document.getElementById('logoutBtn').style.display = 'inline-block';
-    showToast('👋 Welcome back!');
-  }
-};
-
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
-  // 🔐 AUTH FUNCTIONS
-
-async function signUp() {
-  const email = document.getElementById('authEmail').value;
-  const password = document.getElementById('authPass').value;
-
-  const { data, error } = await sb.auth.signUp({
-    email,
-    password
-  });
-
-  if (error) {
-    showToast('❌ ' + error.message);
-  } else {
-    showToast('✅ Signup successful! Check email');
-  }
+function showApp(userEmail){
+  document.getElementById('loginPage').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  if(userEmail) document.getElementById('userInfo').textContent = userEmail;
+  loadDashboard();
+}
+function showLogin(){
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
 }
 
-async function login() {
-  const email = document.getElementById('authEmail').value;
-  const password = document.getElementById('authPass').value;
-
-  const { data, error } = await sb.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) {
-    showToast('❌ ' + error.message);
-  } else {
-    showToast('✅ Logged in!');
-    document.getElementById('logoutBtn').style.display = 'inline-block';
-  }
+let currentTab = 'login';
+function switchTab(tab){
+  currentTab = tab;
+  document.getElementById('tabLogin').classList.toggle('active', tab==='login');
+  document.getElementById('tabSignup').classList.toggle('active', tab==='signup');
+  document.getElementById('authBtn').textContent = tab==='login' ? '🔐 Login' : '✅ Sign Up';
+  document.getElementById('authMsg').textContent = '';
 }
 
-async function logout() {
+async function authAction(){
+  const email = document.getElementById('authEmail').value.trim();
+  const pass  = document.getElementById('authPass').value;
+  const msg   = document.getElementById('authMsg');
+  msg.style.color = '#f87171';
+  msg.textContent = '';
+  if(!email || !pass){ msg.textContent = '⚠️ Please enter email and password'; return; }
+  document.getElementById('authBtn').textContent = 'Please wait...';
+  document.getElementById('authBtn').disabled = true;
+  try{
+    if(currentTab === 'login'){
+      const { data, error } = await sb.auth.signInWithPassword({ email, password: pass });
+      if(error) throw error;
+      showApp(data.user.email);
+    } else {
+      const { data, error } = await sb.auth.signUp({ email, password: pass });
+      if(error) throw error;
+      msg.style.color = '#34d399';
+      msg.textContent = '✅ Signup done! Check your email to confirm, then login.';
+      switchTab('login');
+    }
+  } catch(e){
+    msg.textContent = '❌ ' + (e.message || 'Something went wrong');
+  }
+  document.getElementById('authBtn').textContent = currentTab==='login' ? '🔐 Login' : '✅ Sign Up';
+  document.getElementById('authBtn').disabled = false;
+}
+
+async function logout(){
   await sb.auth.signOut();
   showToast('👋 Logged out');
-  document.getElementById('logoutBtn').style.display = 'none';
+  showLogin();
 }
+
+window.onload = async function(){
+  emailjs.init(EMAILJS_PUBLIC);
+  const { data: { session } } = await sb.auth.getSession();
+  if(session){ showApp(session.user.email); }
+  document.getElementById('authPass').addEventListener('keydown', e => {
+    if(e.key==='Enter') authAction();
+  });
+};
+
 let resumeText='',uploadedFile=null,allCandidates=[],emailsSent=0;
 
-function nav(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');if(btn)btn.classList.add('active');if(id==='pipe')loadPipeline('AI / ML Engineer');if(id==='dash')loadDashboard();}
-function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
-function addActivity(text,color='#6366f1'){const feed=document.getElementById('activityFeed');const div=document.createElement('div');div.className='tl-item';div.innerHTML=`<div class="tl-dot" style="background:${color}"></div><div><div style="font-weight:700;font-size:13px">${text}</div><div style="font-size:11px;color:#888">just now</div></div>`;feed.insertBefore(div,feed.firstChild);}
-async function fileSelected(input){
-  const f = input.files[0];
-  if(!f) return;
-
-  uploadedFile = f;
-
-  document.getElementById('fName').textContent = f.name;
-  document.getElementById('fSize').textContent = Math.round(f.size/1024) + ' KB';
-  document.getElementById('fileBar').style.display = 'flex';
-  document.getElementById('dropIcon').textContent = '✅';
-  document.getElementById('dropTitle').textContent = f.name;
-  document.getElementById('dropZone').classList.add('has-file');
-
-  const fileType = f.name.split('.').pop().toLowerCase();
-
-  try {
-
-    // ✅ TXT
-    if(fileType === 'txt'){
-      const reader = new FileReader();
-      reader.onload = e => {
-        resumeText = e.target.result;
-        checkReady();
-      };
-      reader.readAsText(f);
-    }
-
-    // ✅ PDF
-    else if(fileType === 'pdf'){
-      const arrayBuffer = await f.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-
-      let text = '';
-
-      for(let i = 1; i <= pdf.numPages; i++){
-        const page = await pdf.getPage(i);
-        const content = await page.getTextContent();
-        const strings = content.items.map(item => item.str);
-        text += strings.join(' ') + '\n';
-      }
-
-      resumeText = text;
-      checkReady();
-    }
-
-    // ✅ DOCX
-    else if(fileType === 'docx'){
-      const arrayBuffer = await f.arrayBuffer();
-      const result = await mammoth.extractRawText({ arrayBuffer });
-      resumeText = result.value;
-      checkReady();
-    }
-
-    else{
-      showToast('❌ Unsupported file type');
-    }
-
-  } catch(err){
-    console.error(err);
-    showToast('❌ File read error');
-  }
+function nav(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(id==='pipe')loadPipeline('AI / ML Engineer');
+  if(id==='dash')loadDashboard();
 }
-function clearFile(){uploadedFile=null;resumeText='';document.getElementById('fileBar').style.display='none';document.getElementById('dropIcon').textContent='📄';document.getElementById('dropTitle').textContent='Drop resume or click to upload';document.getElementById('dropZone').classList.remove('has-file');document.getElementById('rFile').value='';checkReady();}
-function checkReady(){document.getElementById('analyzeBtn').disabled=!(uploadedFile&&document.getElementById('rJob').value);}
-function resetScreen(){clearFile();document.getElementById('resultsWrap').style.display='none';document.getElementById('rJob').value='';document.getElementById('rEmail').value='';document.getElementById('rName').value='';checkReady();}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+function addActivity(text,color='#6366f1'){
+  const feed=document.getElementById('activityFeed');
+  const div=document.createElement('div');
+  div.className='tl-item';
+  div.innerHTML=`<div class="tl-dot" style="background:${color}"></div><div><div style="font-weight:700;font-size:13px">${text}</div><div style="font-size:11px;color:#888">just now</div></div>`;
+  feed.insertBefore(div,feed.firstChild);
+}
+
+async function fileSelected(input){
+  const f=input.files[0];if(!f)return;
+  uploadedFile=f;
+  document.getElementById('fName').textContent=f.name;
+  document.getElementById('fSize').textContent=Math.round(f.size/1024)+' KB';
+  document.getElementById('fileBar').style.display='flex';
+  document.getElementById('dropIcon').textContent='✅';
+  document.getElementById('dropTitle').textContent=f.name;
+  document.getElementById('dropZone').classList.add('has-file');
+  const fileType=f.name.split('.').pop().toLowerCase();
+  try{
+    if(fileType==='txt'){
+      const reader=new FileReader();
+      reader.onload=e=>{resumeText=e.target.result;checkReady();};
+      reader.readAsText(f);
+    } else if(fileType==='pdf'){
+      const arrayBuffer=await f.arrayBuffer();
+      const pdf=await pdfjsLib.getDocument({data:arrayBuffer}).promise;
+      let text='';
+      for(let i=1;i<=pdf.numPages;i++){
+        const page=await pdf.getPage(i);
+        const content=await page.getTextContent();
+        text+=content.items.map(item=>item.str).join(' ')+'\n';
+      }
+      resumeText=text;checkReady();
+    } else if(fileType==='docx'){
+      const arrayBuffer=await f.arrayBuffer();
+      const result=await mammoth.extractRawText({arrayBuffer});
+      resumeText=result.value;checkReady();
+    } else {showToast('❌ Unsupported file type');}
+  } catch(err){console.error(err);showToast('❌ File read error');}
+}
+
+function clearFile(){
+  uploadedFile=null;resumeText='';
+  document.getElementById('fileBar').style.display='none';
+  document.getElementById('dropIcon').textContent='📄';
+  document.getElementById('dropTitle').textContent='Drop resume or click to upload';
+  document.getElementById('dropZone').classList.remove('has-file');
+  document.getElementById('rFile').value='';checkReady();
+}
+
+function checkReady(){
+  document.getElementById('analyzeBtn').disabled=!(uploadedFile&&document.getElementById('rJob').value);
+}
+
+function resetScreen(){
+  clearFile();
+  document.getElementById('resultsWrap').style.display='none';
+  document.getElementById('rJob').value='';
+  document.getElementById('rEmail').value='';
+  document.getElementById('rName').value='';
+  checkReady();
+}
 
 const scanMsgs=['Parsing document...','Extracting skills...','Matching keywords...','Running ATS check...','Generating recommendations...','Determining action...'];
 
@@ -465,64 +579,31 @@ async function analyzeResume(){
   const email=document.getElementById('rEmail').value;
   const name=document.getElementById('rName').value||'Candidate';
   if(!job||!resumeText)return;
-
   document.getElementById('scanWrap').style.display='block';
   document.getElementById('resultsWrap').style.display='none';
   document.getElementById('analyzeBtn').disabled=true;
-
   let mi=0;
-  const iv=setInterval(()=>{
-    mi=(mi+1)%scanMsgs.length;
-    document.getElementById('scanMsg').textContent=scanMsgs[mi];
-  },1200);
-
+  const iv=setInterval(()=>{mi=(mi+1)%scanMsgs.length;document.getElementById('scanMsg').textContent=scanMsgs[mi];},1200);
   const prompt=`You are an expert ATS resume analyzer. Analyze this resume for: "${job}".\nRESUME:\n---\n${resumeText.slice(0,3000)}\n---\nReply ONLY with valid JSON no markdown:\n{"score":<0-100>,"scoreTitle":"<3 words>","scoreVerdict":"<2 sentences>","metrics":[{"label":"ATS Score","value":<0-100>},{"label":"Keyword Match","value":<0-100>},{"label":"Impact Level","value":<0-100>},{"label":"Format Quality","value":<0-100>}],"strengths":["...","...","..."],"weaknesses":["...","...","..."],"keywords":[{"word":"...","match":true},{"word":"...","match":false}],"recommendations":["...","...","...","..."]}`;
-
   try{
-    const res = await fetch('/api/groq', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
-        max_tokens: 1000
-      })
-    });
-
-    const data = await res.json();
-
-    const txt = data.choices[0].message.content
-      .replace(/```json|```/g,'')
-      .trim();
-
-    const r = JSON.parse(txt);
-
+    const res=await fetch('/api/groq',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'user',content:prompt}],temperature:0.3,max_tokens:1000})});
+    const data=await res.json();
+    const txt=data.choices[0].message.content.replace(/```json|```/g,'').trim();
+    const r=JSON.parse(txt);
     clearInterval(iv);
     document.getElementById('scanWrap').style.display='none';
-
     await renderResults(r,job,email,name);
-
-  }catch(e){
+  } catch(e){
     clearInterval(iv);
     document.getElementById('scanWrap').style.display='none';
     document.getElementById('analyzeBtn').disabled=false;
-    showToast('❌ AI Failed — try again');
-    console.error(e);
+    showToast('❌ AI Failed — try again');console.error(e);
   }
-} 
-  
-async function sendEmailJS(to_email, name, subject, message) {
-  // Re-init every time to be safe
+}
+
+async function sendEmailJS(to_email,name,subject,message){
   emailjs.init(EMAILJS_PUBLIC);
-  return emailjs.send(EMAILJS_SERVICE, EMAILJS_TEMPLATE, {
-    to_email: to_email,
-    name: name,
-    subject: subject,
-    message: message
-  });
+  return emailjs.send(EMAILJS_SERVICE,EMAILJS_TEMPLATE,{to_email,name,subject,message});
 }
 
 async function renderResults(r,job,email,name){
@@ -530,59 +611,61 @@ async function renderResults(r,job,email,name){
   document.getElementById('scoreNum').textContent=score;
   document.getElementById('scoreTitle').textContent=r.scoreTitle||'Done';
   document.getElementById('scoreVerdict').textContent=r.scoreVerdict||'';
-  setTimeout(()=>{const offset=251-(251*score/100);const ring=document.getElementById('ringEl');ring.style.strokeDashoffset=offset;ring.style.stroke=score>=80?'#10b981':score>=60?'#f59e0b':'#ef4444';},100);
-
+  setTimeout(()=>{
+    const offset=251-(251*score/100);
+    const ring=document.getElementById('ringEl');
+    ring.style.strokeDashoffset=offset;
+    ring.style.stroke=score>=80?'#10b981':score>=60?'#f59e0b':'#ef4444';
+  },100);
   let action,actionLabel,emailMsg,bc;
   if(score>=90){action='hired';actionLabel='🏆 AUTO-HIRED';bc='bg';emailMsg=`Congratulations! 🎉 We are thrilled to offer you the position of ${job}. Please confirm by next Friday.`;}
   else if(score>=80){action='interview';actionLabel='📅 INTERVIEW INVITED';bc='bp';emailMsg=`Great news! You have been shortlisted for ${job}. Google Meet interview link will be sent shortly. Duration: 45 minutes.`;}
   else if(score>=60){action='shortlisted';actionLabel='📋 SHORTLISTED';bc='ba';emailMsg=`Thank you for applying for ${job}. You are on our shortlist. We will be in touch soon!`;}
   else{action='rejected';actionLabel='❌ AUTO-REJECTED';bc='br';emailMsg=`Thank you for your interest in ${job}. After careful review, we are moving forward with other candidates. Best of luck in your job search!`;}
-
   document.getElementById('autoActionBadge').innerHTML=`<span class="badge ${bc}" style="font-size:13px;padding:6px 14px">${actionLabel}</span>`;
   const mg=document.getElementById('metricsGrid');mg.innerHTML='';
   const colors=['#6366f1','#10b981','#f59e0b','#ef4444'];
-  (r.metrics||[]).forEach((m,i)=>{const v=Math.max(0,Math.min(100,m.value));mg.innerHTML+=`<div class="stat"><div class="stat-n" style="color:${colors[i]}">${v}</div><div class="stat-l">${m.label}</div><div class="prog-wrap"><div class="prog-bar" id="pb${i}" style="width:0%;background:${colors[i]}"></div></div></div>`;setTimeout(()=>{const el=document.getElementById('pb'+i);if(el)el.style.width=v+'%';},200+i*80);});
-  const sl=document.getElementById('strList');sl.innerHTML='';(r.strengths||[]).forEach(s=>sl.innerHTML+=`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px"><span>✅</span><span>${s}</span></div>`);
-  const wl=document.getElementById('weakList');wl.innerHTML='';(r.weaknesses||[]).forEach(w=>wl.innerHTML+=`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px"><span>⚠️</span><span>${w}</span></div>`);
-  const kl=document.getElementById('kwList');kl.innerHTML='';(r.keywords||[]).forEach(k=>{const st=k.match?'background:#ede9fe;border:1px solid #c4b5fd;color:#5b21b6':'background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;text-decoration:line-through';kl.innerHTML+=`<span style="display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;margin:3px;font-family:monospace;${st}">${k.word}</span>`;});
-  const rl=document.getElementById('recList');rl.innerHTML='';(r.recommendations||[]).forEach(rc=>rl.innerHTML+=`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px"><span style="color:#6366f1">→</span><span>${rc}</span></div>`);
+  (r.metrics||[]).forEach((m,i)=>{
+    const v=Math.max(0,Math.min(100,m.value));
+    mg.innerHTML+=`<div class="stat"><div class="stat-n" style="color:${colors[i]}">${v}</div><div class="stat-l">${m.label}</div><div class="prog-wrap"><div class="prog-bar" id="pb${i}" style="width:0%;background:${colors[i]}"></div></div></div>`;
+    setTimeout(()=>{const el=document.getElementById('pb'+i);if(el)el.style.width=v+'%';},200+i*80);
+  });
+  const sl=document.getElementById('strList');sl.innerHTML='';
+  (r.strengths||[]).forEach(s=>sl.innerHTML+=`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px"><span>✅</span><span>${s}</span></div>`);
+  const wl=document.getElementById('weakList');wl.innerHTML='';
+  (r.weaknesses||[]).forEach(w=>wl.innerHTML+=`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px"><span>⚠️</span><span>${w}</span></div>`);
+  const kl=document.getElementById('kwList');kl.innerHTML='';
+  (r.keywords||[]).forEach(k=>{
+    const st=k.match?'background:#ede9fe;border:1px solid #c4b5fd;color:#5b21b6':'background:#fee2e2;border:1px solid #fca5a5;color:#991b1b;text-decoration:line-through';
+    kl.innerHTML+=`<span style="display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;margin:3px;font-family:monospace;${st}">${k.word}</span>`;
+  });
+  const rl=document.getElementById('recList');rl.innerHTML='';
+  (r.recommendations||[]).forEach(rc=>rl.innerHTML+=`<div style="font-size:13px;margin-bottom:8px;display:flex;gap:8px"><span style="color:#6366f1">→</span><span>${rc}</span></div>`);
   document.getElementById('resultsWrap').style.display='block';
   document.getElementById('analyzeBtn').disabled=false;
-
-  // Save to Supabase
   try{
-    const user = (await sb.auth.getUser()).data.user;
-
-await sb.from('candidates').insert({
-  name,
-  email,
-  job_title: job,
-  score,
-  status: action,
-  user_id: user.id
-});
+    const user=(await sb.auth.getUser()).data.user;
+    await sb.from('candidates').insert({name,email,job_title:job,score,status:action,user_id:user.id});
     allCandidates.push({name,email,job_title:job,score,status:action});
     updateDashboardStats();
     addActivity(`${name} scored ${score}/100 → ${actionLabel}`,score>=80?'#10b981':score>=60?'#f59e0b':'#ef4444');
     showToast('✅ Saved to database!');
-  }catch(e){console.log('DB error:',e);}
-
-  // Send Email
-  if(email && email.trim() !== ''){
+  } catch(e){console.log('DB error:',e);}
+  if(email&&email.trim()!==''){
     const subject=score>=90?'🎉 Congratulations — Job Offer!':score>=80?'📅 Interview Invitation':score>=60?'✅ Application Update':'Your Application Status — HireAI Pro';
     try{
-      await sendEmailJS(email, name, subject, emailMsg);
+      await sendEmailJS(email,name,subject,emailMsg);
       emailsSent++;
       document.getElementById('totalEmails').textContent=emailsSent;
       document.getElementById('emailSentCard').style.display='block';
       document.getElementById('emailPreview').innerHTML=`<div class="email-meta"><strong>To:</strong> ${email} &nbsp;|&nbsp; <strong>Subject:</strong> ${subject} &nbsp;|&nbsp; <strong>Status:</strong> ✅ Sent!</div><strong>Dear ${name},</strong><br><br>${emailMsg}<br><br><em style="color:#888">— HireAI Pro Team</em>`;
       showToast('📧 Email sent successfully!');
       addActivity(`📧 Email sent to ${email}`,'#10b981');
-    }catch(e){
+    } catch(e){
       console.error('Email error:',e);
       showToast('⚠️ Email failed — check console');
       document.getElementById('emailSentCard').style.display='block';
-      document.getElementById('emailPreview').innerHTML=`<div class="email-meta"><strong>To:</strong> ${email} &nbsp;|&nbsp; <strong>Subject:</strong> ${subject} &nbsp;|&nbsp; <strong>Status:</strong> ⚠️ Failed</div><strong>Dear ${name},</strong><br><br>${emailMsg}<br><br><small style="color:#ef4444">Email failed to send. Error: ${e.text || e.message || 'Unknown error'}</small>`;
+      document.getElementById('emailPreview').innerHTML=`<div class="email-meta"><strong>To:</strong> ${email} &nbsp;|&nbsp; <strong>Subject:</strong> ${subject} &nbsp;|&nbsp; <strong>Status:</strong> ⚠️ Failed</div><strong>Dear ${name},</strong><br><br>${emailMsg}<br><br><small style="color:#ef4444">Email failed: ${e.text||e.message||'Unknown error'}</small>`;
     }
   }
 }
@@ -600,7 +683,7 @@ async function loadDashboard(){
         tbody.innerHTML+=`<tr><td style="font-weight:700">${c.name||'—'}</td><td style="color:#888">${c.email||'—'}</td><td>${c.job_title||'—'}</td><td><span class="sp ${sp}">${c.score}</span></td><td><span class="badge ${c.status==='hired'?'bg':c.status==='interview'?'bp':c.status==='shortlisted'?'ba':'br'}">${c.status}</span></td><td style="color:#888;font-size:11px">${new Date(c.created_at).toLocaleDateString()}</td></tr>`;
       });
     }
-  }catch(e){console.log('Dashboard error:',e);}
+  } catch(e){console.log('Dashboard error:',e);}
 }
 
 function updateDashboardStats(){
@@ -624,7 +707,7 @@ async function loadPipeline(job){
       if(cols[key].length===0){el.innerHTML='<div style="font-size:12px;color:#aaa;text-align:center;padding:10px">None</div>';return;}
       cols[key].forEach(c=>{const sc=c.score;const sp=sc>=80?'sh':sc>=60?'sm':'sl';el.innerHTML+=`<div class="cc"><div class="cn">${c.name||'Unknown'}</div><div style="font-size:11px;color:#888"><span class="sp ${sp}">${c.score}</span></div></div>`;});
     });
-  }catch(e){console.log(e);}
+  } catch(e){console.log(e);}
 }
 
 async function bulkProcess(input){
@@ -666,137 +749,60 @@ function postJob(){
   showToast('✅ Job posted!');
 }
 
-let messageCount = 0;
-const MESSAGE_LIMIT = 10;
-let lastMessageTime = 0;
-const COOLDOWN = 3000;
+let messageCount=0;
+const MESSAGE_LIMIT=10;
+let lastMessageTime=0;
+const COOLDOWN=3000;
 
 async function sendChat(){
-  const inp = document.getElementById('chatInput');
-  const msg = inp.value.trim();
-  if(!msg) return;
-
-  const now = Date.now();
-
-  // ⏳ Cooldown check
-  if (now - lastMessageTime < COOLDOWN) {
-    showToast("⏳ Wait 3 seconds between messages");
-    return;
-  }
-
-  // 🚫 Limit check
-  if (messageCount >= MESSAGE_LIMIT) {
-    showToast("🚫 Message limit reached (10)");
-    return;
-  }
-
-  // ✅ update counters
-  lastMessageTime = now;
-  messageCount++;
-
-  const ca = document.getElementById('chatArea');
-
-  // user message
-  ca.innerHTML += `
-  <div class="msg-row clearfix">
-    <div class="msg-label r">You</div>
-    <div class="bubble bubble-user">${msg}</div>
-  </div>`;
-
-  // typing animation
-  ca.innerHTML += `
-  <div id="tr" class="msg-row">
-    <div class="msg-label">HireAI Bot</div>
-    <div class="bubble bubble-ai" style="color:#888">typing...</div>
-  </div>`;
-
-  inp.value = '';
-  ca.scrollTop = ca.scrollHeight;
-
-  try {
-    const res = await fetch('/api/groq', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { 
-            role: 'system', 
-            content: 'You are HireAI Pro HR Assistant. Answer like a real HR professional. Be polite, confident, and intelligent. Keep answers short but meaningful. If user asks about job status, ask for role or email. If rejected, give improvement suggestions. If selected, respond positively. Never say you do not know — guide the user properly.' 
-          },
-          { role: 'user', content: msg }
-        ]
-      })
-    });
-
-    const data = await res.json();
-    const reply = data.choices?.[0]?.message?.content || "AI error";
-
+  const inp=document.getElementById('chatInput');
+  const msg=inp.value.trim();if(!msg)return;
+  const now=Date.now();
+  if(now-lastMessageTime<COOLDOWN){showToast("⏳ Wait 3 seconds between messages");return;}
+  if(messageCount>=MESSAGE_LIMIT){showToast("🚫 Message limit reached (10)");return;}
+  lastMessageTime=now;messageCount++;
+  const ca=document.getElementById('chatArea');
+  ca.innerHTML+=`<div class="msg-row clearfix"><div class="msg-label r">You</div><div class="bubble bubble-user">${msg}</div></div>`;
+  ca.innerHTML+=`<div id="tr" class="msg-row"><div class="msg-label">HireAI Bot</div><div class="bubble bubble-ai" style="color:#888">typing...</div></div>`;
+  inp.value='';ca.scrollTop=ca.scrollHeight;
+  try{
+    const res=await fetch('/api/groq',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'llama-3.3-70b-versatile',messages:[{role:'system',content:'You are HireAI Pro HR Assistant. Answer like a real HR professional. Be polite, confident, and intelligent. Keep answers short but meaningful.'},{role:'user',content:msg}]})});
+    const data=await res.json();
+    const reply=data.choices?.[0]?.message?.content||"AI error";
     document.getElementById('tr')?.remove();
-
-    ca.innerHTML += `
-    <div class="msg-row">
-      <div class="msg-label">HireAI Bot</div>
-      <div class="bubble bubble-ai">${reply}</div>
-    </div>`;
-
-  } catch (e) {
+    ca.innerHTML+=`<div class="msg-row"><div class="msg-label">HireAI Bot</div><div class="bubble bubble-ai">${reply}</div></div>`;
+  } catch(e){
     document.getElementById('tr')?.remove();
-
-    ca.innerHTML += `
-    <div class="msg-row">
-      <div class="msg-label">HireAI Bot</div>
-      <div class="bubble bubble-ai">❌ AI failed</div>
-    </div>`;
+    ca.innerHTML+=`<div class="msg-row"><div class="msg-label">HireAI Bot</div><div class="bubble bubble-ai">❌ AI failed</div></div>`;
   }
-
-  ca.scrollTop = ca.scrollHeight;
+  ca.scrollTop=ca.scrollHeight;
 }
-  
+
 const tickers=['Live: Groq AI active — free & fast! ⚡','Live: EmailJS connected — auto emails sending','Live: Supabase DB — all candidates saved','Live: Score 90+=Hire | 80+=Interview | 50-=Reject','Live: HireAI Pro fully operational 🚀'];
 let ti=0;
-setInterval(()=>{ti=(ti+1)%tickers.length;document.getElementById('tickerText').textContent=tickers[ti];},4000);
-
-loadDashboard();
+setInterval(()=>{ti=(ti+1)%tickers.length;const el=document.getElementById('tickerText');if(el)el.textContent=tickers[ti];},4000);
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
-
 <script>
-particlesJS("particles-js", {
-  particles: {
-    number: { value: 60 },
-    size: { value: 2 },
-    move: { speed: 1 }
-  }
-});
+particlesJS("particles-js",{particles:{number:{value:60},size:{value:2},move:{speed:1}}});
 </script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-
 <script>
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth/300, 0.1, 1000);
-
-const renderer = new THREE.WebGLRenderer({ alpha:true });
-renderer.setSize(window.innerWidth, 300);
-renderer.domElement.style.pointerEvents = "none";
-document.getElementById("3d-box").appendChild(renderer.domElement);
-
-const geometry = new THREE.TorusKnotGeometry();
-const material = new THREE.MeshBasicMaterial({ color:0x8b5cf6, wireframe:true });
-
-const mesh = new THREE.Mesh(geometry, material);
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(75,window.innerWidth/300,0.1,1000);
+const renderer=new THREE.WebGLRenderer({alpha:true});
+renderer.setSize(window.innerWidth,300);
+renderer.domElement.style.pointerEvents="none";
+const box3d=document.getElementById("3d-box");
+if(box3d)box3d.appendChild(renderer.domElement);
+const geometry=new THREE.TorusKnotGeometry();
+const material=new THREE.MeshBasicMaterial({color:0x8b5cf6,wireframe:true});
+const mesh=new THREE.Mesh(geometry,material);
 scene.add(mesh);
-
-camera.position.z = 3;
-
-function animate(){
-  requestAnimationFrame(animate);
-  mesh.rotation.x += 0.01;
-  mesh.rotation.y += 0.01;
-  renderer.render(scene, camera);
-}
+camera.position.z=3;
+function animate(){requestAnimationFrame(animate);mesh.rotation.x+=0.01;mesh.rotation.y+=0.01;renderer.render(scene,camera);}
 animate();
 </script>
 
