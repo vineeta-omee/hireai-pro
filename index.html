@@ -136,6 +136,14 @@ label{font-size:12px;color:#666;display:block;margin-bottom:5px;margin-top:12px;
 <body>
 <div id="particles-js"></div>
 <div class="topbar">
+  <div id="authBox" style="position:fixed;top:20px;right:20px;background:#fff;padding:16px;border-radius:12px;z-index:999">
+  <input type="email" id="authEmail" placeholder="Email" style="margin-bottom:8px">
+  <input type="password" id="authPass" placeholder="Password" style="margin-bottom:8px">
+  
+  <button onclick="signUp()" class="btn btn-primary">Sign Up</button>
+  <button onclick="login()" class="btn">Login</button>
+  <button onclick="logout()" class="btn" style="display:none" id="logoutBtn">Logout</button>
+</div>
   <div class="logo">HireAI <span>Pro</span> ⚡</div>
   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <span class="badge bb">L1 AI</span>
@@ -327,11 +335,58 @@ const SUPABASE_URL='https://neicnwazsszmdsyyqlnw.supabase.co';
 const SUPABASE_KEY='sb_publishable_4iZSiIDROottJdaSLAwIKQ_cxsCno-R';
 
 // EmailJS init - FIXED
-window.onload = function() {
+window.onload = async function() {
   emailjs.init(EMAILJS_PUBLIC);
+
+  const { data: { session } } = await sb.auth.getSession();
+
+  if (session) {
+    document.getElementById('logoutBtn').style.display = 'inline-block';
+    showToast('👋 Welcome back!');
+  }
 };
 
 const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+  // 🔐 AUTH FUNCTIONS
+
+async function signUp() {
+  const email = document.getElementById('authEmail').value;
+  const password = document.getElementById('authPass').value;
+
+  const { data, error } = await sb.auth.signUp({
+    email,
+    password
+  });
+
+  if (error) {
+    showToast('❌ ' + error.message);
+  } else {
+    showToast('✅ Signup successful! Check email');
+  }
+}
+
+async function login() {
+  const email = document.getElementById('authEmail').value;
+  const password = document.getElementById('authPass').value;
+
+  const { data, error } = await sb.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    showToast('❌ ' + error.message);
+  } else {
+    showToast('✅ Logged in!');
+    document.getElementById('logoutBtn').style.display = 'inline-block';
+  }
+}
+
+async function logout() {
+  await sb.auth.signOut();
+  showToast('👋 Logged out');
+  document.getElementById('logoutBtn').style.display = 'none';
+}
 let resumeText='',uploadedFile=null,allCandidates=[],emailsSent=0;
 
 function nav(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');if(btn)btn.classList.add('active');if(id==='pipe')loadPipeline('AI / ML Engineer');if(id==='dash')loadDashboard();}
@@ -496,7 +551,16 @@ async function renderResults(r,job,email,name){
 
   // Save to Supabase
   try{
-    await sb.from('candidates').insert({name,email,job_title:job,score,status:action});
+    const user = (await sb.auth.getUser()).data.user;
+
+await sb.from('candidates').insert({
+  name,
+  email,
+  job_title: job,
+  score,
+  status: action,
+  user_id: user.id
+});
     allCandidates.push({name,email,job_title:job,score,status:action});
     updateDashboardStats();
     addActivity(`${name} scored ${score}/100 → ${actionLabel}`,score>=80?'#10b981':score>=60?'#f59e0b':'#ef4444');
