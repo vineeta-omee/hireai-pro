@@ -332,7 +332,68 @@ let resumeText='',uploadedFile=null,allCandidates=[],emailsSent=0;
 function nav(id,btn){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));document.getElementById('page-'+id).classList.add('active');if(btn)btn.classList.add('active');if(id==='pipe')loadPipeline('AI / ML Engineer');if(id==='dash')loadDashboard();}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
 function addActivity(text,color='#6366f1'){const feed=document.getElementById('activityFeed');const div=document.createElement('div');div.className='tl-item';div.innerHTML=`<div class="tl-dot" style="background:${color}"></div><div><div style="font-weight:700;font-size:13px">${text}</div><div style="font-size:11px;color:#888">just now</div></div>`;feed.insertBefore(div,feed.firstChild);}
-function fileSelected(input){const f=input.files[0];if(!f)return;uploadedFile=f;document.getElementById('fName').textContent=f.name;document.getElementById('fSize').textContent=Math.round(f.size/1024)+' KB';document.getElementById('fileBar').style.display='flex';document.getElementById('dropIcon').textContent='✅';document.getElementById('dropTitle').textContent=f.name;document.getElementById('dropZone').classList.add('has-file');const reader=new FileReader();reader.onload=e=>{resumeText=e.target.result;checkReady();};reader.readAsText(f);}
+async function fileSelected(input){
+  const f = input.files[0];
+  if(!f) return;
+
+  uploadedFile = f;
+
+  document.getElementById('fName').textContent = f.name;
+  document.getElementById('fSize').textContent = Math.round(f.size/1024) + ' KB';
+  document.getElementById('fileBar').style.display = 'flex';
+  document.getElementById('dropIcon').textContent = '✅';
+  document.getElementById('dropTitle').textContent = f.name;
+  document.getElementById('dropZone').classList.add('has-file');
+
+  const fileType = f.name.split('.').pop().toLowerCase();
+
+  try {
+
+    // ✅ TXT
+    if(fileType === 'txt'){
+      const reader = new FileReader();
+      reader.onload = e => {
+        resumeText = e.target.result;
+        checkReady();
+      };
+      reader.readAsText(f);
+    }
+
+    // ✅ PDF
+    else if(fileType === 'pdf'){
+      const arrayBuffer = await f.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+      let text = '';
+
+      for(let i = 1; i <= pdf.numPages; i++){
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        const strings = content.items.map(item => item.str);
+        text += strings.join(' ') + '\n';
+      }
+
+      resumeText = text;
+      checkReady();
+    }
+
+    // ✅ DOCX
+    else if(fileType === 'docx'){
+      const arrayBuffer = await f.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      resumeText = result.value;
+      checkReady();
+    }
+
+    else{
+      showToast('❌ Unsupported file type');
+    }
+
+  } catch(err){
+    console.error(err);
+    showToast('❌ File read error');
+  }
+}
 function clearFile(){uploadedFile=null;resumeText='';document.getElementById('fileBar').style.display='none';document.getElementById('dropIcon').textContent='📄';document.getElementById('dropTitle').textContent='Drop resume or click to upload';document.getElementById('dropZone').classList.remove('has-file');document.getElementById('rFile').value='';checkReady();}
 function checkReady(){document.getElementById('analyzeBtn').disabled=!(uploadedFile&&document.getElementById('rJob').value);}
 function resetScreen(){clearFile();document.getElementById('resultsWrap').style.display='none';document.getElementById('rJob').value='';document.getElementById('rEmail').value='';document.getElementById('rName').value='';checkReady();}
@@ -592,7 +653,7 @@ async function sendChat(){
         messages: [
           { 
             role: 'system', 
-            content: 'You are HireAI Pro assistant. Answer like HR. Be short, professional, helpful.' 
+            content: 'You are HireAI Pro HR Assistant. Answer like a real HR professional. Be polite, confident, and intelligent. Keep answers short but meaningful. If user asks about job status, ask for role or email. If rejected, give improvement suggestions. If selected, respond positively. Never say you do not know — guide the user properly.' 
           },
           { role: 'user', content: msg }
         ]
